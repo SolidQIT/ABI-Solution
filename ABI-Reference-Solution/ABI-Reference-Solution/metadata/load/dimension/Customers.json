@@ -1,0 +1,80 @@
+{
+  "$schema": "/metadata/_schemas/load/dimension.json",
+  "ABI3": {
+    "Template": {
+      "Phase": "load",
+      "Pattern": "dimension",
+      "Implementation": "bk",
+      "Version": 2
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Dimension": {
+    "Name": "Customers",
+    "Source": {
+      "Schema": "etl",
+      "Name": "vw_dim_$(Dimension.Name)",
+      "FullName": "[$(Dimension.Source.Schema)].[$(Dimension.Source.Name)]"
+    },
+    "Columns": {
+      "UniqueKey": [
+        {
+          "Name": "bk_CustomerID",
+          "Type": "int",
+          "Default": "NULL"
+        }
+      ],
+      "SCD1": [
+        {
+          "Name": "bk_PersonID",
+          "Type": "int",
+          "Default": "NULL"
+        },
+        {
+          "Name": "bk_PersonTypeID",
+          "Type": "nchar(2)",
+          "Default": "NULL"
+        },
+        {
+          "Name": "bk_StoreID",
+          "Type": "int",
+          "Default": "NULL"
+        },        
+        {
+          "Name": "PersonFullName",
+          "Type": "nvarchar(101)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "PersonType",
+          "Type": "nvarchar(100)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "StoreName",
+          "Type": "nvarchar(50)",
+          "Default": "'N/A'"
+        }       
+      ],
+      "SCD2": [
+        {
+          "Name": "bk_StoreSizeID",
+          "Type": "int",
+          "Default": "NULL"
+        },
+        {
+          "Name": "SquareFeet",
+          "Type": "int",
+          "Default": "0"
+        },
+        {
+          "Name": "StoreSize",
+          "Type": "nvarchar(100)",
+          "Default": "'N/A'"
+        }
+      ]
+    }
+  }
+}

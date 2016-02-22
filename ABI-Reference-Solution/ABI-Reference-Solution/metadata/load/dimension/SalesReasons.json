@@ -1,0 +1,44 @@
+{
+  "$schema": "/metadata/_schemas/load/dimension.json",
+  "ABI3": {
+    "Template": {
+      "Phase": "load",
+      "Pattern": "dimension",
+      "Implementation": "bk",
+      "Version": 1
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Dimension": {
+    "Name": "SalesReasons",
+    "Source": {
+      "Schema": "etl",
+      "Name": "vw_dim_$(Dimension.Name)",
+      "FullName": "[$(Dimension.Source.Schema)].[$(Dimension.Source.Name)]"
+    },
+    "Columns": {
+      "UniqueKey": [
+        {
+          "Name": "bk_SalesReasonID",
+          "Type": "int",
+          "Default": "NULL"
+        }
+      ],
+      "SCD1": [       
+        {
+          "Name": "Reason",
+          "Type": "nvarchar(50)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "ReasonType",
+          "Type": "nvarchar(50)",
+          "Default": "'N/A'"
+        }
+      ],
+      "SCD2": [ ]
+    }
+  }
+}

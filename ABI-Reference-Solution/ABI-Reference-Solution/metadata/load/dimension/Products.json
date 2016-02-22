@@ -1,0 +1,64 @@
+{
+  "$schema": "/metadata/_schemas/load/dimension.json",
+  "ABI3": {
+    "Template": {
+      "Phase": "load",
+      "Pattern": "dimension",
+      "Implementation": "bk",
+      "Version": 1
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Dimension": {
+    "Name": "Products",
+    "Source": {
+      "Schema": "etl",
+      "Name": "vw_dim_$(Dimension.Name)",
+      "FullName": "[$(Dimension.Source.Schema)].[$(Dimension.Source.Name)]"
+    },
+    "Columns": {
+      "UniqueKey": [
+        {
+          "Name": "bk_ProductID",
+          "Type": "int",
+          "Default": "NULL"
+        }
+      ],
+      "SCD1": [
+        {
+          "Name": "bk_ProductSubcategoryID",
+          "Type": "int",
+          "Default": "NULL"
+        },
+        {
+          "Name": "bk_ProductCategoryID",
+          "Type": "int",
+          "Default": "NULL"
+        },
+        {
+          "Name": "ProductNumber",
+          "Type": "nvarchar(25)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "ProductName",
+          "Type": "nvarchar(50)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "SubcategoryName",
+          "Type": "nvarchar(50)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "CategoryName",
+          "Type": "nvarchar(50)",
+          "Default": "'N/A'"
+        }
+      ],
+      "SCD2": [ ]
+    }
+  }
+}

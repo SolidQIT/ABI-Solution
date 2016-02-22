@@ -1,0 +1,49 @@
+{
+  "$schema": "/metadata/_schemas/load/dimension.json",
+  "ABI3": {
+    "Template": {
+      "Phase": "load",
+      "Pattern": "dimension",
+      "Implementation": "bk",
+      "Version": 1
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Dimension": {
+    "Name": "OrdersInfo",
+    "Source": {
+      "Schema": "etl",
+      "Name": "vw_dim_$(Dimension.Name)",
+      "FullName": "[$(Dimension.Source.Schema)].[$(Dimension.Source.Name)]"
+    },
+    "Columns": {
+      "UniqueKey": [
+        {
+          "Name": "bk_OnlineOrderFlagID",
+          "Type": "tinyint",
+          "Default": "NULL"
+        },
+        {
+          "Name": "bk_OrderStatusID",
+          "Type": "tinyint",
+          "Default": "NULL"
+        }
+      ],
+      "SCD1": [
+        {
+          "Name": "OnlineOrderFlag",
+          "Type": "nvarchar(12)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "OrderStatus",
+          "Type": "nvarchar(100)",
+          "Default": "'N/A'"
+        }
+      ],
+      "SCD2": [ ]
+    }
+  }
+}

@@ -1,0 +1,40 @@
+﻿{
+  "$schema": "/metadata/_schemas/extract/full-viw.json",
+  "ABI3": {
+    "Template": {
+      "Phase": "extract",
+      "Pattern": "full",
+      "Source": "viw",
+      "Implementation": "single",
+      "Version": 1
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Connections": {
+    "Helpers": [
+      {
+        "Name": "HLP",
+        "Database": "$(ABI3.Project.Name)_HLP",
+        "ConnectionString": "Data Source=localhost;Initial Catalog=$(Connections.Helpers[0].Database);Provider=SQLNCLI11.1;Integrated Security=SSPI;Auto Translate=False"
+      }
+    ]
+  },
+  "Object": {
+    "SourceObject": {
+      "Schema": "bi",
+      "Name": "vw_Sales__SalesOrderHeader",
+      "FullName": "[$(Object.SourceObject.Schema)].[$(Object.SourceObject.Name)]"
+    },
+    "DestinationTable": {
+      "Connection": "$(Connections.Staging)",
+      "Schema": "stg",
+      "Name": "Sales__SalesOrderHeader",
+      "FullName": "[$(Object.DestinationTable.Schema)].[$(Object.DestinationTable.Name)]",
+      "CreatePrimaryKey": 0,
+      "Columns": "$$Run-Plugin::ColumnsMetadataCompiler['$(Connections.Helpers[0].ConnectionString)', '$(Object.SourceObject.Schema)', '$(Object.SourceObject.Name)']"
+    },
+    "PrimaryKeyColumns": []
+  }
+}

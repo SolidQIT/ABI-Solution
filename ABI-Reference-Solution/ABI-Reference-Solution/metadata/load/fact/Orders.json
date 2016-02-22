@@ -1,0 +1,80 @@
+{
+  "$schema": "",  
+  "ABI3": {
+    "Template": {
+      "Phase": "load",
+      "Pattern": "fact",
+      "Implementation": "full",
+      "Version": 1
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Fact": {
+    "Name": "Orders",
+    "Source": {
+      "Schema": "etl",
+      "Name": "vw_fact_$(Fact.Name)",
+      "FullName": "[$(Fact.Source.Schema)].[$(Fact.Source.Name)]"
+    },
+    "Dimensions": {
+      "Lookups": [
+        {
+          "Name": "Customers",
+          "Dimension": "Customers",
+          "LookupKeys": [
+            {
+              "FactColumn": "bk_CustomerID",
+              "DimensionColumn": "bk_CustomerID"
+            }
+          ]
+        },
+        {
+          "Name": "OrdersInfo",
+          "Dimension": "OrdersInfo",
+          "LookupKeys": [
+            {
+              "FactColumn": "bk_OnlineOrderFlagID",
+              "DimensionColumn": "bk_OnlineOrderFlagID"
+            },
+            {
+              "FactColumn": "bk_OrderStatusID",
+              "DimensionColumn": "bk_OrderStatusID"
+            }
+          ]
+        },
+        {
+          "Name": "Orders",
+          "Dimension": "Orders",
+          "LookupKeys": [
+            {
+              "FactColumn": "bk_SalesOrderID",
+              "DimensionColumn": "bk_SalesOrderID"
+            }
+          ]
+        }
+      ],
+      "PassThrough": [ "id_dim_Date_OrderDate" ]
+    },
+    "Measures": [
+      {
+        "Name": "NetAmount",
+        "Type": "money"
+      },
+      {
+        "Name": "TaxAmount",
+        "Type": "money"
+      },
+      {
+        "Name": "FreightAmount",
+        "Type": "money"
+      },
+      {
+        "Name": "TotalAmount",
+        "Type": "money"
+      }
+    ],
+    "Other": [ ]
+  }
+}

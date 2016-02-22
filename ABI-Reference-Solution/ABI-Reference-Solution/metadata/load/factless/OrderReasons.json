@@ -1,0 +1,48 @@
+{
+  "$schema": "",  
+  "ABI3": {
+    "Template": {
+      "Phase": "load",
+      "Pattern": "factless",
+      "Implementation": "full",
+      "Version": 1
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Fact": {
+    "Name": "OrderReasons",
+    "Source": {
+      "Schema": "etl",
+      "Name": "vw_factless_$(Fact.Name)",
+      "FullName": "[$(Fact.Source.Schema)].[$(Fact.Source.Name)]"
+    },
+    "Dimensions": {
+      "Lookups": [       
+        {
+          "Name": "Orders",
+          "Dimension": "Orders",
+          "LookupKeys": [
+            {
+              "FactColumn": "bk_SalesOrderID",
+              "DimensionColumn": "bk_SalesOrderID"
+            }
+          ]
+        },
+        {
+          "Name": "SalesReasons",
+          "Dimension": "SalesReasons",
+          "LookupKeys": [
+            {
+              "FactColumn": "bk_SalesReasonID",
+              "DimensionColumn": "bk_SalesReasonID"
+            }
+          ]
+        }
+      ],
+      "PassThrough": [ ]
+    },    
+    "Other": [ ]
+  }
+}

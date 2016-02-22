@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{D57D708F-18B5-4711-8AD0-4AA0C59B9F70}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ABI_Reference_Solution</RootNamespace>
+    <AssemblyName>ABI-Reference-Solution</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="CommandLine.dll" />
+    <Content Include="DotLiquid.dll" />
+    <Content Include="Newtonsoft.Json.dll" />
+    <Content Include="Newtonsoft.Json.Schema.dll" />
+    <Content Include="NLog.dll" />
+    <Content Include="plugins\SolidQ.ABI.Plugin.Common\SolidQ.ABI.Plugin.Common.dll" />
+    <Content Include="SolidQ.ABI.Compiler.dll" />
+    <Content Include="SolidQ.ABI.exe" />
+    <Content Include="SolidQ.ABI.Extensibility.dll" />
+    <Content Include="support\sample\setup\ddl\setup-cfg-views.sql" />
+    <Content Include="support\sample\setup\ddl\setup-hlp-views.sql" />
+    <Content Include="support\sample\setup\ddl\setup-stg-views.sql" />
+    <Content Include="support\sample\setup\setup-views.sql" />
+    <Content Include="support\setup\ddl\setup-cfg-objects.sql" />
+    <Content Include="support\setup\ddl\setup-log-objects.sql" />
+    <Content Include="support\setup\ddl\setup-md-objects.sql" />
+    <Content Include="support\setup\ddl\setup-stg-objects.sql" />
+    <Content Include="support\setup\setup-objects.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="metadata\common\connections.json" />
+    <None Include="metadata\common\project.json" />
+    <None Include="metadata\extract\Person__Person.json" />
+    <None Include="metadata\extract\Production__Product.json" />
+    <None Include="metadata\extract\Production__ProductCategory.json" />
+    <None Include="metadata\extract\Production__ProductSubCategory.json" />
+    <None Include="metadata\extract\Sales__CreditCard.json" />
+    <None Include="metadata\extract\Sales__Customer.json" />
+    <None Include="metadata\extract\Sales__SalesOrderDetail.json" />
+    <None Include="metadata\extract\Sales__SalesOrderHeader.json" />
+    <None Include="metadata\extract\Sales__SalesOrderHeaderSalesReason.json" />
+    <None Include="metadata\extract\Sales__SalesReason.json" />
+    <None Include="metadata\extract\Sales__Store.json" />
+    <None Include="metadata\load\dimension\Customers.json" />
+    <None Include="metadata\load\dimension\Dates.json" />
+    <None Include="metadata\load\dimension\Orders.json" />
+    <None Include="metadata\load\dimension\OrdersInfo.json" />
+    <None Include="metadata\load\dimension\Products.json" />
+    <None Include="metadata\load\dimension\SalesReasons.json" />
+    <None Include="metadata\load\factless\OrderReasons.json" />
+    <None Include="metadata\load\fact\OrderDetails.json" />
+    <None Include="metadata\load\fact\Orders.json" />
+    <None Include="metadata\_schemas\extract\full-viw.json" />
+    <None Include="NLog.config" />
+    <None Include="output\execute-extract-sql.ps1" />
+    <None Include="output\execute-load-sql.ps1" />
+    <None Include="SolidQ.ABI.exe.config" />
+    <None Include="support\setup\setup-db.ps1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="templates\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

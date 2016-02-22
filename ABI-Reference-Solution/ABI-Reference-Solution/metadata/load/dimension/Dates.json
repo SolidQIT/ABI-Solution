@@ -1,0 +1,47 @@
+{
+  "$schema": "/metadata/_schemas/load/dimension.json",
+  "ABI3": {
+    "Template": {
+      "Phase": "load",
+      "Pattern": "dimension",
+      "Implementation": "sk",
+      "Version": 1
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Dimension": {
+    "Name": "Dates",
+    "Source": {
+      "Schema": "etl",
+      "Name": "vw_dim_$(Dimension.Name)",
+      "FullName": "[$(Dimension.Source.Schema)].[$(Dimension.Source.Name)]"
+    },
+    "Columns": {
+      "SurrogateKey": {
+        "Name": "id_dim_$(Dimension.Name)",
+        "Type": "int",
+        "Default": "-1"
+      },
+      "SCD1": [
+        {
+          "Name": "CalendarYear",
+          "Type": "int",
+          "Default": "NULL"
+        },
+        {
+          "Name": "CalendarMonth",
+          "Type": "int",
+          "Default": "NULL"
+        },
+        {
+          "Name": "CalendarDate",
+          "Type": "date",
+          "Default": "NULL"
+        }
+      ],
+      "SCD2": [ ]
+    }
+  }
+}
