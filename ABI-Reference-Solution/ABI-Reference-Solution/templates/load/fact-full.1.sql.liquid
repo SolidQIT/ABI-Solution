@@ -1,0 +1,63 @@
+/*
+
+	SolidQ Adaptive BI Framework 3.0
+
+	Compilation:
+		Date			: {{ ABI3.Compiler.CompilationDateTime }}
+
+	Template:
+		Phase			: Load
+		Pattern			: Fact
+		Implementation	: Full 
+		Type			: T-SQL
+		Author			: dmauri
+		Version			: 1
+	
+*/
+
+/*
+	===== CREATE DWH OBJECTS
+*/
+
+USE [{{ Connections.DataWarehouse.Database }}]
+GO
+
+IF (SCHEMA_ID('dwh') IS NULL) 
+	EXECUTE('CREATE SCHEMA [dwh];')
+GO
+
+IF (OBJECT_ID('[dwh].[fact_{{ Fact.Name }}]') IS NOT NULL)
+	DROP TABLE [dwh].[fact_{{ Fact.Name }}]
+GO
+
+CREATE TABLE [dwh].[fact_{{ Fact.Name }}]
+(
+	[id_fact_{{ Fact.Name }}] [INT] IDENTITY NOT NULL,
+
+	-- Dimensions
+	{% for column in Fact.Dimensions.PassThrough -%}
+	[{{ column }}] INT NOT NULL,
+	{% endfor -%}	
+	{% for lookup in Fact.Dimensions.Lookups -%}
+	[id_dim_{{ lookup.Dimension }}] INT NOT NULL,
+	{% endfor -%}
+
+	-- Measures
+	{% for measure in Fact.Measures -%}
+	[{{ measure.Name }}] {{ measure.Type }},
+	{% endfor -%}
+
+	-- Other
+	{% for other in Fact.Other -%}
+	[{{ other.Name }}] {{ other.Type }},
+	{% endfor -%}
+
+	[$sq_log_id] [INT] NOT NULL,
+	
+	CONSTRAINT [pk_fact_{{ Fact.Name }}] PRIMARY KEY CLUSTERED 
+	(
+		[id_fact_{{ Fact.Name }}] ASC
+	)
+)
+GO
+

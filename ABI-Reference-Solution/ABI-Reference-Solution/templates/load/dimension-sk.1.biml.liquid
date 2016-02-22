@@ -1,0 +1,199 @@
+<Biml xmlns="http://schemas.varigence.com/biml.xsd">
+  <Connections>
+    <OleDbConnection Name="LOG" ConnectionString="{{ Connections.Log.ConnectionString }}" CreateInProject="true"/>
+    <OleDbConnection Name="TMP" ConnectionString="{{ Connections.Staging.ConnectionString }}" CreateInProject="true"/>
+    <OleDbConnection Name="STG" ConnectionString="{{ Connections.Staging.ConnectionString }}" CreateInProject="true" />
+    <OleDbConnection Name="DWH" ConnectionString="{{ Connections.DataWarehouse.ConnectionString }};" CreateInProject="true" />
+  </Connections>
+  <Packages>
+    <Package Name="Load_DIM_{{ Dimension.Name }}" AutoCreateConfigurationsType="None" ConstraintMode="Parallel" ProtectionLevel="EncryptSensitiveWithUserKey">
+      <Annotations>
+        <Annotation AnnotationType="Description">
+          <![CDATA[ 
+              SolidQ Adaptive BI Framework 3.0
+
+	            Compilation:
+		            Date			        : {{ ABI3.Compiler.CompilationDateTime }}
+
+	            Template:
+		            Phase			        : Load
+		            Pattern			      : Dimension
+                Implementation    : Surrogate Key
+		            Type			        : BIML
+		            Author			      : dmauri
+                Version           : 1                
+                
+              Description:
+                Load a dimension using a provided Surrogate Key. 
+                Only SCD1 type is supported (due to missing Business Keys data)
+                Log inserted and updated rows.
+          ]]>
+        </Annotation>
+      </Annotations>
+      <Variables>
+        <Variable Name="RowsToMerge" DataType="Int32" Namespace="User">0</Variable>
+        <Variable Name="LoadedRows" DataType="Int32" Namespace="User">0</Variable>
+        <Variable Name="LogRowId" DataType="Int32" Namespace="User">0</Variable>
+        <Variable Name="CS" DataType="String" Namespace="User" EvaluateAsExpression="true">
+          <![CDATA["<inserted_rows>" + (DT_WSTR, 12)@[User::LoadedRows] + "</inserted_rows><updated_rows>" + (DT_WSTR, 12)@[User::RowsToMerge] + "</updated_rows>"]]>
+        </Variable>
+      </Variables>
+      <Tasks>
+        <ExecuteSQL Name="Set Load Start" ConnectionName="LOG" ResultSet="SingleRow">         
+          <DirectInput>
+            DECLARE @rowId INT;
+            EXEC @rowId = [log].[stp_etl_table_load_info_set_start] '{{ Connections.DataWarehouse.Database }}', 'dwh', 'dim_{{ Dimension.Name }}', 'I', ?;
+            SELECT CAST(@rowId AS INT) AS RowId
+          </DirectInput>
+          <Parameters>
+            <Parameter Name="@serverExecutionId" VariableName="System.ServerExecutionID" DataType="Int64" Direction="Input"/>
+          </Parameters>
+          <Results>
+            <Result Name="RowId" VariableName="User.LogRowId" />
+          </Results>
+        </ExecuteSQL>
+        <Container ConstraintMode="Parallel" Name="Load Data">
+          <PrecedenceConstraints>
+            <Inputs>
+              <Input OutputPathName="Set Load Start.Output" EvaluationOperation="Constraint" EvaluationValue="Success"/>
+            </Inputs>
+          </PrecedenceConstraints>
+          <Tasks>
+            <ExecuteSQL Name="Clean TMP Table" ConnectionName="TMP">
+              <DirectInput>TRUNCATE TABLE tmp.dim_{{Dimension.Name}};</DirectInput>
+            </ExecuteSQL>
+            <Dataflow Name="Load Dimension">
+              <PrecedenceConstraints>
+                <Inputs>
+                  <Input OutputPathName="Clean TMP Table.Output"/>
+                </Inputs>
+              </PrecedenceConstraints>
+              <Transformations>
+                <OleDbSource Name="STG" ConnectionName="STG">
+                  <DirectInput>SELECT * FROM {{ Dimension.Source.FullName }} OPTION (RECOMPILE)</DirectInput>
+                </OleDbSource>
+                {% if Dimension.Columns.SCD1 != empty -%}
+                <CustomComponent Name="Calculate SCD1 Checksum" ComponentTypeName="Martin.SQLServer.Dts.MultipleHash, MultipleHash{{ ABI3.Project.TargetSQLPlatformVersion }}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=51c551904274ab44">
+                  <CustomProperties>
+                    <CustomProperty Name="MultipleThreads" DataType="Int32" TypeConverter="Martin.SQLServer.Dts.MultipleHash+MultipleThread, MultipleHash{{ ABI3.Project.TargetSQLPlatformVersion }}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=51c551904274ab44">1</CustomProperty>
+                    <CustomProperty Name="SafeNullHandling" DataType="Int32" TypeConverter="Martin.SQLServer.Dts.MultipleHash+MultipleThread, MultipleHash{{ ABI3.Project.TargetSQLPlatformVersion }}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=51c551904274ab44">1</CustomProperty>
+                  </CustomProperties>
+                  <InputPaths>
+                    <InputPath Identifier="Input" OutputPathName="STG.Output">
+                      <InputColumns>                        
+                        {% for column in Dimension.Columns.SCD1 -%}
+                        <InputColumn SourceColumn="{{ column.Name }}" />
+                        {% endfor -%}
+                      </InputColumns>
+                    </InputPath>
+                  </InputPaths>
+                  <OutputPaths>
+                    <OutputPath Name="HashedOutput" SynchronousInput="Input">
+                      <OutputColumns>
+                        <OutputColumn Name="scd1_checksum" DataType="Binary" Length="8">
+                          <CustomProperties>
+                            <Property Name="HashType" DataType="Int32" TypeConverter="Martin.SQLServer.Dts.MultipleHash+MultipleThread, MultipleHash{{ ABI3.Project.TargetSQLPlatformVersion }}, Version=1.0.0.0, Culture=neutral, PublicKeyToken=51c551904274ab44">10</Property>
+                            <Property Name="InputColumnLineageIDs" ContainsId="true" TranslateValueToLineageId="true" LineageIdListSeparator="," DataType="String">{{ Dimension.Columns.SCD1 | Map: 'Name' | Join: ',' }}</Property>
+                          </CustomProperties>
+                        </OutputColumn>
+                      </OutputColumns>
+                    </OutputPath>
+                  </OutputPaths>
+                </CustomComponent>
+                {% endif -%}
+                <DerivedColumns Name="Add Metadata">
+                  <Columns>
+                    <Column Name="$sq_log_id" DataType="Int32">@LogRowId</Column>
+                  </Columns>
+                </DerivedColumns>
+                <Lookup Name="Lookup Dimension" OleDbConnectionName="DWH" NoMatchBehavior="IgnoreFailure">
+                  <DirectInput>SELECT {{ Dimension.Columns.SurrogateKey.Name }}, scd1_checksum FROM [dwh].[dim_{{ Dimension.Name }}]</DirectInput>
+                  <Inputs>
+                    <Column SourceColumn="{{ Dimension.Columns.SurrogateKey.Name }}" TargetColumn="{{ Dimension.Columns.SurrogateKey.Name }}"/>
+                  </Inputs>
+                  <Outputs>
+                    <Column SourceColumn="{{ Dimension.Columns.SurrogateKey.Name }}" TargetColumn="l_{{ Dimension.Columns.SurrogateKey.Name }}" />
+                    <Column SourceColumn="scd1_checksum" TargetColumn="l_scd1_checksum" />
+                  </Outputs>
+                </Lookup>
+                <ConditionalSplit Name="Split New vs Existing Rows">
+                  <OutputPaths>
+                    <OutputPath Name="New Rows">
+                      <Expression>ISNULL(l_{{ Dimension.Columns.SurrogateKey.Name }})</Expression>
+                    </OutputPath>
+                  </OutputPaths>
+                </ConditionalSplit>
+                <RowCount Name="Count New Rows" VariableName="User.LoadedRows">
+                  <InputPath OutputPathName="Split New vs Existing Rows.New Rows" />
+                </RowCount>
+                <OleDbDestination Name="DWH" ConnectionName="DWH" UseFastLoadIfAvailable="true">
+                  <InputPath OutputPathName="Count New Rows.Output" />
+                  <ExternalTableOutput Table="dwh.dim_{{ Dimension.Name }}"/>                  
+                </OleDbDestination>
+                {% if Dimension.Columns.SCD1 != empty -%}
+                <ConditionalSplit Name="Filter SCD1 Changed Rows">
+                  <InputPath OutputPathName="Split New vs Existing Rows.Default" />
+                  <OutputPaths>
+                    <OutputPath Name="Changed Rows">
+                      <Expression>(DT_I8)scd1_checksum != (DT_I8)l_scd1_checksum</Expression>
+                    </OutputPath>
+                  </OutputPaths>
+                </ConditionalSplit>
+                <RowCount Name="Count Changed Rows" VariableName="User.RowsToMerge">
+                  <InputPath OutputPathName="Filter SCD1 Changed Rows.Changed Rows" />
+                </RowCount>
+                <OleDbDestination Name="TMP" ConnectionName="TMP" UseFastLoadIfAvailable="true">
+                  <InputPath OutputPathName="Count Changed Rows.Output" />
+                  <ExternalTableOutput Table="tmp.dim_{{ Dimension.Name }}" />
+                </OleDbDestination>
+                {% endif -%}
+              </Transformations>
+            </Dataflow>
+            {% if Dimension.Columns.SCD1 != empty -%}
+            <ExecuteSQL Name="Handle SCD Merge" ConnectionName="STG">
+              <PrecedenceConstraints>
+                <Inputs>
+                  <Input OutputPathName="Load Dimension.Output" EvaluationOperation="ExpressionAndConstraint" Expression="@RowsToMerge > 0" EvaluationValue="Success"/>
+                </Inputs>
+              </PrecedenceConstraints>
+              <DirectInput>EXEC [etl].[stp_merge_dim_{{ Dimension.Name }}];</DirectInput>
+            </ExecuteSQL>
+            {% endif -%}
+            <ExecuteSQL Name="Add Dummy Member" ConnectionName="STG">
+              <PrecedenceConstraints>
+                <Inputs>
+                  <Input OutputPathName="Load Dimension.Output"/>
+                </Inputs>
+              </PrecedenceConstraints>
+              <DirectInput>EXEC [etl].[stp_add_dummy_dim_{{ Dimension.Name }}];</DirectInput>
+            </ExecuteSQL>
+          </Tasks>
+        </Container>
+        <ExecuteSQL Name="Set Load End Success" ConnectionName="LOG">
+          <PrecedenceConstraints>
+            <Inputs>
+              <Input OutputPathName="Load Data.Output" EvaluationOperation="Constraint" EvaluationValue="Success"/>
+            </Inputs>
+          </PrecedenceConstraints>
+          <DirectInput>EXEC [log].stp_etl_table_load_info_set_end_cs ?, ?, 'S';</DirectInput>
+          <Parameters>
+            <Parameter Name="@rowId" VariableName="User.LogRowId" DataType="Int32" Direction="Input" />
+            <Parameter Name="@xcs" VariableName="User.CS" DataType="String" Direction="Input" />
+          </Parameters>
+        </ExecuteSQL>
+        <ExecuteSQL Name="Set Load End Failure" ConnectionName="LOG">
+          <PrecedenceConstraints>
+            <Inputs>
+              <Input OutputPathName="Load Data.Output" EvaluationOperation="Constraint" EvaluationValue="Failure"/>
+            </Inputs>
+          </PrecedenceConstraints>
+          <DirectInput>EXEC [log].[stp_etl_table_load_info_set_end] ?, ?, 'F';</DirectInput>
+          <Parameters>
+            <Parameter Name="@rowId" VariableName="User.LogRowId" DataType="Int32" Direction="Input" />
+            <Parameter Name="@rows" VariableName="User.LoadedRows" DataType="Int32" Direction="Input" />
+          </Parameters>
+        </ExecuteSQL>
+      </Tasks>
+    </Package>
+  </Packages>
+</Biml>

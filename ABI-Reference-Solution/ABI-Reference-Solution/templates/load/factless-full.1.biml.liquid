@@ -1,0 +1,143 @@
+<Biml xmlns="http://schemas.varigence.com/biml.xsd">
+  <Connections>
+    <OleDbConnection Name="LOG" ConnectionString="{{ Connections.Log.ConnectionString }}" CreateInProject="true"/>
+    <OleDbConnection Name="TMP" ConnectionString="{{ Connections.Staging.ConnectionString }}" CreateInProject="true"/>
+    <OleDbConnection Name="STG" ConnectionString="{{ Connections.Staging.ConnectionString }}" CreateInProject="true" />
+    <OleDbConnection Name="DWH" ConnectionString="{{ Connections.DataWarehouse.ConnectionString }};" CreateInProject="true" />
+  </Connections>
+  <Packages>
+    <Package Name="Load_FACTLESS_{{ Fact.Name }}" ConstraintMode="Parallel" ProtectionLevel="EncryptSensitiveWithUserKey">
+      <Annotations>
+        <Annotation AnnotationType="Description">
+          <![CDATA[ 
+              SolidQ Adaptive BI Framework 3.0
+
+	            Compilation:
+		            Date			        : {{ ABI3.Compiler.CompilationDateTime }}
+
+	            Template:
+		            Phase			        : Load
+		            Pattern			      : Factless
+                Implementation	  : Full 
+		            Type			        : BIML
+		            Author			      : dmauri
+                Version           : 1    
+                
+              Description:
+                Load a factless fact table using a full load pattern.
+          ]]>
+        </Annotation>
+      </Annotations>
+      <Variables>
+        <Variable Name="LoadedRows" DataType="Int32" Namespace="User">0</Variable>
+        <Variable Name="LogRowId" DataType="Int32" Namespace="User">0</Variable>
+        <Variable Name="CS" DataType="String" Namespace="User" EvaluateAsExpression="true">
+          <![CDATA["<inserted_rows>" + (DT_WSTR, 12)@[User::LoadedRows] + "</inserted_rows>"]]>
+        </Variable>
+      </Variables>
+      <Tasks>
+        <ExecuteSQL Name="Set Load Start" ConnectionName="LOG" ResultSet="SingleRow">
+          <DirectInput>
+            DECLARE @rowId INT;
+            EXEC @rowId = [log].[stp_etl_table_load_info_set_start] '{{ Connections.DataWarehouse.Database }}', 'dwh', 'factless_{{ Fact.Name }}', 'F', ?;
+            SELECT CAST(@rowId AS INT) AS RowId
+          </DirectInput>
+          <Parameters>
+            <Parameter Name="@serverExecutionId" VariableName="System.ServerExecutionID" DataType="Int64" Direction="Input"/>
+          </Parameters>
+          <Results>
+            <Result Name="RowId" VariableName="User.LogRowId" />
+          </Results>
+        </ExecuteSQL>
+        <Container ConstraintMode="Parallel" Name="Load Data">
+          <PrecedenceConstraints>
+            <Inputs>
+              <Input OutputPathName="Set Load Start.Output" EvaluationOperation="Constraint" EvaluationValue="Success"/>
+            </Inputs>
+          </PrecedenceConstraints>
+          <Tasks>
+            <ExecuteSQL Name="Truncate Fact Table" ConnectionName="DWH">
+              <DirectInput>
+                TRUNCATE TABLE [dwh].[factless_{{ Fact.Name }}];
+              </DirectInput>
+            </ExecuteSQL>
+            <Dataflow Name="Load Fact">
+              <PrecedenceConstraints>
+                <Inputs>
+                  <Input OutputPathName="Truncate Fact Table.Output"/>
+                </Inputs>
+              </PrecedenceConstraints>
+              <Transformations>
+                <OleDbSource Name="STG" ConnectionName="STG">
+                  <DirectInput>SELECT * FROM {{ Fact.Source.FullName }} OPTION (RECOMPILE)</DirectInput>
+                </OleDbSource>
+                {% for lookup in Fact.Dimensions.Lookups -%}
+                <Lookup Name="Lookup {{ lookup.Name }}" OleDbConnectionName="DWH" NoMatchBehavior="IgnoreFailure">
+                  <DirectInput>SELECT id_dim_{{ lookup.Name }}, {{ lookup.LookupKeys | Map: 'DimensionColumn' | Join: ',' }} FROM [dwh].[dim_{{ lookup.Dimension }}]</DirectInput>
+                  <Inputs>
+                    {% for lookupkey in lookup.LookupKeys -%}
+                    <Column SourceColumn="{{ lookupkey.FactColumn }}" TargetColumn="{{ lookupkey.DimensionColumn }}"/>
+                    {% endfor -%}
+                  </Inputs>
+                  <Outputs>
+                    <Column SourceColumn="id_dim_{{ lookup.Name }}" TargetColumn="id_dim_{{ lookup.Name }}" />
+                  </Outputs>
+                </Lookup>
+                {% endfor -%}
+                <DerivedColumns Name="Set Dummy">
+                  <Columns>
+                    {% for lookup in Fact.Dimensions.Lookups -%}
+                    <Column ReplaceExisting="true" Name="id_dim_{{ lookup.Name }}" DataType="Int32">REPLACENULL(id_dim_{{ lookup.Name }},-1)</Column>
+                    {% endfor -%}
+                    {% for passthrough in Fact.Dimensions.PassThrough -%}
+                    <Column ReplaceExisting="true" Name="{{ passthrough }}" DataType="Int32">REPLACENULL({{ passthrough }},-1)</Column>
+                    {% endfor -%}
+                  </Columns>
+                </DerivedColumns>
+                <DerivedColumns Name="Add Metadata">
+                  <Columns>
+                    <Column Name="$sq_log_id" DataType="Int32">@LogRowId</Column>
+                  </Columns>
+                </DerivedColumns>
+                <RowCount Name="Count Rows" VariableName="User.LoadedRows">
+                  <InputPath OutputPathName="Add Metadata.Output" />
+                </RowCount>
+                <OleDbDestination Name="DWH" ConnectionName="DWH" UseFastLoadIfAvailable="true">
+                  <InputPath OutputPathName="Count Rows.Output" />
+                  <ExternalTableOutput Table="dwh.factless_{{ Fact.Name }}"/>
+                  <Columns>
+                    <Column SourceColumn="id_fact_{{ Fact.Name }}" IsUsed="false" />
+                  </Columns>
+                </OleDbDestination>
+              </Transformations>
+            </Dataflow>
+          </Tasks>
+        </Container>
+        <ExecuteSQL Name="Set Load End Success" ConnectionName="LOG">
+          <PrecedenceConstraints>
+            <Inputs>
+              <Input OutputPathName="Load Data.Output" EvaluationOperation="Constraint" EvaluationValue="Success"/>
+            </Inputs>
+          </PrecedenceConstraints>
+          <DirectInput>EXEC [log].stp_etl_table_load_info_set_end_cs ?, ?, 'S';</DirectInput>
+          <Parameters>
+            <Parameter Name="@rowId" VariableName="User.LogRowId" DataType="Int32" Direction="Input" />
+            <Parameter Name="@xcs" VariableName="User.CS" DataType="String" Direction="Input" />
+          </Parameters>
+        </ExecuteSQL>
+        <ExecuteSQL Name="Set Load End Failure" ConnectionName="LOG">
+          <PrecedenceConstraints>
+            <Inputs>
+              <Input OutputPathName="Load Data.Output" EvaluationOperation="Constraint" EvaluationValue="Failure"/>
+            </Inputs>
+          </PrecedenceConstraints>
+          <DirectInput>EXEC [log].[stp_etl_table_load_info_set_end] ?, ?, 'F';</DirectInput>
+          <Parameters>
+            <Parameter Name="@rowId" VariableName="User.LogRowId" DataType="Int32" Direction="Input" />
+            <Parameter Name="@rows" VariableName="User.LoadedRows" DataType="Int32" Direction="Input" />
+          </Parameters>
+        </ExecuteSQL>
+      </Tasks>
+    </Package>
+  </Packages>
+</Biml>

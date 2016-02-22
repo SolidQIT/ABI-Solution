@@ -1,0 +1,170 @@
+/*
+
+	SolidQ Adaptive BI Framework 3.0
+
+	Compilation:
+		Date			: {{ ABI3.Compiler.CompilationDateTime }}
+
+	Template:
+		Phase			: Load
+		Pattern			: Dimension
+		Implementation	: SK (Surrogate Key Provided)
+		Type			: T-SQL
+		Author			: dmauri
+		Version			: 1
+
+	Description:
+        Load a dimension using a provided Surrogate Key. 
+        Only SCD1 type is supported (due to missing Business Keys data)
+        Log inserted and updated rows.
+	
+*/
+
+/*
+	===== CREATE STAGING OBJECTS
+*/
+
+USE [{{ Connections.Staging.Database }}]
+GO
+
+IF (SCHEMA_ID('dwh_proxy') IS NULL) 
+	EXECUTE('CREATE SCHEMA [dwh_proxy];')
+GO
+
+IF (SCHEMA_ID('stg') IS NULL) 
+	EXECUTE('CREATE SCHEMA [stg];')
+GO
+
+IF (SCHEMA_ID('tmp') IS NULL) 
+	EXECUTE('CREATE SCHEMA [tmp];')
+GO
+
+IF (OBJECT_ID('[proxy_dwh].[dim_{{ Dimension.Name }}]') IS NULL)
+	CREATE SYNONYM [proxy_dwh].[dim_{{ Dimension.Name }}] FOR [{{ Connections.DataWarehouse.Database }}].[dwh].[dim_{{ Dimension.Name }}]
+GO
+
+IF (OBJECT_ID('[tmp].[dim_{{ Dimension.Name }}]') IS NOT NULL)
+	DROP TABLE [tmp].[dim_{{ Dimension.Name }}];
+GO
+
+CREATE TABLE [tmp].[dim_{{ Dimension.Name }}]
+(
+	[{{ Dimension.Columns.SurrogateKey.Name }}] [{{ Dimension.Columns.SurrogateKey.Type }}] NOT NULL,
+	{% for column in Dimension.Columns.SCD1 -%}
+	[{{ column.Name }}] {{ column.Type }},
+	{% endfor -%}
+	[scd1_checksum] [BIGINT] NULL,
+	[$sq_log_id] [INT] NOT NULL,
+	CONSTRAINT [pk_dim_{{ Dimension.Name }}] PRIMARY KEY CLUSTERED 
+	(
+		[{{ Dimension.Columns.SurrogateKey.Name }}] ASC
+	)	
+)
+GO
+
+/*
+	===== CREATE DWH OBJECTS
+*/
+
+USE [{{ Connections.DataWarehouse.Database }}]
+GO
+
+IF (SCHEMA_ID('dwh') IS NULL) 
+	EXECUTE('CREATE SCHEMA [dwh];')
+GO
+
+IF (OBJECT_ID('[dwh].[dim_{{ Dimension.Name }}]') IS NOT NULL)
+	DROP TABLE [dwh].[dim_{{ Dimension.Name }}];
+GO
+
+CREATE TABLE [dwh].[dim_{{ Dimension.Name }}]
+(
+	[{{ Dimension.Columns.SurrogateKey.Name }}] [{{ Dimension.Columns.SurrogateKey.Type }}] NOT NULL,	
+	{% for column in Dimension.Columns.SCD1 -%}
+	[{{ column.Name }}] {{ column.Type }},
+	{% endfor -%}
+	[scd1_checksum] [BIGINT] NULL,
+	[$sq_log_id] [INT] NOT NULL,
+	CONSTRAINT [pk_dim_{{ Dimension.Name }}] PRIMARY KEY CLUSTERED 
+	(
+		[{{ Dimension.Columns.SurrogateKey.Name }}] ASC
+	)
+)
+GO
+
+/*
+	===== CREATE ETL PROCEDURES
+*/
+
+USE [{{ Connections.Staging.Database }}]
+GO
+
+IF (OBJECT_ID('[etl].[stp_merge_dim_{{ Dimension.Name }}]') IS NOT NULL)
+	DROP PROCEDURE [etl].[stp_merge_dim_{{ Dimension.Name }}];
+GO
+
+IF (OBJECT_ID('[etl].[stp_add_dummy_dim_{{ Dimension.Name }}]') IS NOT NULL)
+	DROP PROCEDURE [etl].[stp_add_dummy_dim_{{ Dimension.Name }}];
+GO
+
+{% if Dimension.Columns.SCD1 != empty or Dimension.Columns.SCD1 != empty -%}
+
+CREATE PROCEDURE [etl].[stp_merge_dim_{{ Dimension.Name }}]
+AS
+SET XACT_ABORT ON;
+BEGIN TRAN;
+
+-- Manage SCD 1 Updates
+MERGE
+	[proxy_dwh].[dim_{{ Dimension.Name }}] tgt
+USING
+	[tmp].[dim_{{ Dimension.Name }}] src
+ON
+	tgt.[{{ Dimension.Columns.SurrogateKey.Name }}] = src.[{{ Dimension.Columns.SurrogateKey.Name }}] 
+WHEN MATCHED THEN
+	UPDATE SET
+		{% for column in Dimension.Columns.SCD1 -%}
+		tgt.[{{ column.Name }}] = src.[{{ column.Name }}],
+		{% endfor -%}
+ 		tgt.[scd1_checksum] = src.[scd1_checksum],
+ 		tgt.[$sq_log_id] = src.[$sq_log_id]
+;
+
+COMMIT TRAN;
+GO
+
+{% endif -%}
+
+CREATE PROCEDURE [etl].[stp_add_dummy_dim_{{ Dimension.Name }}]
+AS
+IF (NOT EXISTS(SELECT * FROM [proxy_dwh].[dim_{{ Dimension.Name }}] WHERE [{{ Dimension.Columns.SurrogateKey.Name }}] = -1))
+BEGIN
+	INSERT INTO [proxy_dwh].[dim_{{ Dimension.Name }}]
+	([{{ Dimension.Columns.SurrogateKey.Name }}]
+	{% if Dimension.Columns.SCD1 != empty -%}
+	-- SCD1
+	, {{ Dimension.Columns.SCD1 | Map: 'Name' | Join: ',' }}
+	, [scd1_checksum]
+	{% endif -%}
+	{% if Dimension.Columns.SCD2 != empty -%}
+	-- SCD2
+	, {{ Dimension.Columns.SCD2 | Map: 'Name' | Join: ',' }}
+	, [scd2_checksum]
+	{% endif -%}
+	, [$sq_log_id])
+	VALUES
+	({{ Dimension.Columns.SurrogateKey.Default }}
+	{% if Dimension.Columns.SCD1 != empty -%}
+	-- SCD1
+	, {{ Dimension.Columns.SCD1 | Map: 'Default' | Join: ',' }} 
+	, -1
+	{% endif -%}
+	{% if Dimension.Columns.SCD2 != empty -%}
+	-- SCD2
+	, {{ Dimension.Columns.SCD1 | Map: 'Default' | Join: ',' }} 
+	, -1
+	{% endif -%}
+	, -1)
+END
+GO
+

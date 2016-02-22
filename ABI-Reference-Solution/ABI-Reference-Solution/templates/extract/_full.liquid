@@ -1,0 +1,53 @@
+/*
+	===== CREATE STAGING OBJECTS
+*/
+USE [{{ Object.DestinationTable.Connection.Database }}]
+GO
+
+IF (OBJECT_ID('[{{ Object.DestinationTable.Schema }}].[{{ Object.DestinationTable.Name }}]') IS NOT NULL)
+	DROP TABLE [{{ Object.DestinationTable.Schema }}].[{{ Object.DestinationTable.Name }}];
+GO
+
+CREATE TABLE [{{ Object.DestinationTable.Schema }}].[{{ Object.DestinationTable.Name }}]
+(
+	{% for Column in Object.DestinationTable.Columns -%}
+	[{{ Column.Name }}] {{ Column.DataType }},
+	{% endfor -%}
+	[$sq_log_id] int not null
+);
+GO
+
+{% if Object.DestinationTable.CreatePrimaryKey == 1 -%}
+
+{% for Column in Object.DestinationTable.Columns -%}
+{% if Object.PrimaryKeyColumns contains Column.Name -%}
+ALTER TABLE [{{ Object.DestinationTable.Schema }}].[{{ Object.DestinationTable.Name }}]
+ALTER COLUMN [{{ Column.Name }}] {{ Column.DataType }} NOT NULL;
+GO
+
+{% endif -%}
+{% endfor -%}
+
+ALTER TABLE [{{ Object.DestinationTable.Schema }}].[{{ Object.DestinationTable.Name }}]
+ADD CONSTRAINT [pk__{{ Object.DestinationTable.Name }}] PRIMARY KEY CLUSTERED ({{ Object.PrimaryKeyColumns | Join: ',' }})
+GO
+
+{% endif -%}
+
+/*
+	===== UPDATE METADATA DATABASE
+*/
+USE [{{ Connections.Metadata.Database }}]
+GO
+
+MERGE INTO
+	[md].[extract_phase] t 
+USING
+	(VALUES('{{ Object.SourceObject.Name }}', 'Y')) s(source_object_name, active_for_load)
+ON
+	t.source_object_name = s.source_object_name
+WHEN NOT MATCHED THEN
+	INSERT VALUES (s.source_object_name, s.active_for_load)
+WHEN MATCHED THEN
+	UPDATE SET t.active_for_load = t.active_for_load
+;

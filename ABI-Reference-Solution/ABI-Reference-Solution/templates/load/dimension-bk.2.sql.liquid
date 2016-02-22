@@ -1,0 +1,259 @@
+/*
+
+	SolidQ Adaptive BI Framework 3.0
+
+	Compilation:
+		Date			: {{ ABI3.Compiler.CompilationDateTime }}
+
+	Template:
+		Phase			: Load
+		Pattern			: Dimension
+		Implementation	: BK (Business Keys Provided)
+		Type			: T-SQL
+		Author			: dmauri
+		Version			: 2
+
+	 Description:
+        Load a dimension taking care of SCD1 and SCD2 handling. Log inserted and updated rows.
+*/
+
+/*
+	===== CREATE STAGING OBJECTS
+*/
+
+USE [{{ Connections.Staging.Database }}]
+GO
+
+IF (SCHEMA_ID('proxy_dwh') IS NULL) 
+	EXECUTE('CREATE SCHEMA [proxy_dwh];')
+GO
+
+IF (SCHEMA_ID('stg') IS NULL) 
+	EXECUTE('CREATE SCHEMA [stg];')
+GO
+
+IF (SCHEMA_ID('tmp') IS NULL) 
+	EXECUTE('CREATE SCHEMA [tmp];')
+GO
+
+IF (OBJECT_ID('[proxy_dwh].[dim_{{ Dimension.Name }}]') IS NULL)
+	CREATE SYNONYM [proxy_dwh].[dim_{{ Dimension.Name }}] FOR [{{ Connections.DataWarehouse.Database }}].[dwh].[dim_{{ Dimension.Name }}]
+GO
+
+IF (OBJECT_ID('[tmp].[dim_{{ Dimension.Name }}]') IS NOT NULL)
+	DROP TABLE [tmp].[dim_{{ Dimension.Name }}];
+GO
+
+CREATE TABLE [tmp].[dim_{{ Dimension.Name }}]
+(
+	[id_dim_{{ Dimension.Name }}] [INT] NOT NULL,
+	{% for column in Dimension.Columns.UniqueKey -%}
+	[{{ column.Name }}] {{ column.Type }},
+	{% endfor -%}
+	{% for column in Dimension.Columns.SCD1 -%}
+	[{{ column.Name }}] {{ column.Type }},
+	{% endfor -%}
+	{% for column in Dimension.Columns.SCD2 -%}
+	[{{ column.Name }}] {{ column.Type }},
+	{% endfor -%}
+	{% if Dimension.Columns.SCD1 != empty -%}
+	[scd1_checksum] [BIGINT] NULL,
+	{% endif -%}
+	{% if Dimension.Columns.SCD2 != empty -%}
+	[scd2_checksum] [BIGINT] NULL,
+	[scd2_valid_from] [DATE] NULL,
+	[scd2_valid_to] [DATE] NULL,
+	{% endif -%}
+	[$sq_log_id] [INT] NOT NULL,
+	[scd_type] [TINYINT] NOT NULL,
+	CONSTRAINT [pk_dim_{{ Dimension.Name }}] PRIMARY KEY CLUSTERED 
+	(
+		[id_dim_{{ Dimension.Name }}] ASC,
+		[scd_type]
+	)	
+)
+GO
+
+/*
+	===== CREATE DWH OBJECTS
+*/
+
+USE [{{ Connections.DataWarehouse.Database }}]
+GO
+
+IF (SCHEMA_ID('dwh') IS NULL) 
+	EXECUTE('CREATE SCHEMA [dwh];')
+GO
+
+IF (OBJECT_ID('[dwh].[sq_dimensions]') IS NULL) 
+	CREATE SEQUENCE [dwh].[sq_dimensions] AS [INT] START WITH 1 INCREMENT BY 1 
+GO
+
+IF (OBJECT_ID('[dwh].[dim_{{ Dimension.Name }}]') IS NOT NULL)
+	DROP TABLE [dwh].[dim_{{ Dimension.Name }}];
+GO
+
+CREATE TABLE [dwh].[dim_{{ Dimension.Name }}]
+(
+	[id_dim_{{ Dimension.Name }}] [INT] NOT NULL,
+	{% for column in Dimension.Columns.UniqueKey -%}
+	[{{ column.Name }}] {{ column.Type }},
+	{% endfor -%}
+	{% for column in Dimension.Columns.SCD1 -%}
+	[{{ column.Name }}] {{ column.Type }},
+	{% endfor -%}
+	{% for column in Dimension.Columns.SCD2 -%}
+	[{{ column.Name }}] {{ column.Type }},
+	{% endfor -%}
+	{% if Dimension.Columns.SCD1 != empty -%}
+	[scd1_checksum] [BIGINT] NULL,
+	{% endif -%}
+	{% if Dimension.Columns.SCD2 != empty -%}
+	[scd2_checksum] [BIGINT] NULL,
+	[scd2_valid_from] [DATE] NOT NULL,
+	[scd2_valid_to] [DATE] NOT NULL,
+	{% endif -%}
+	[$sq_log_id] [INT] NOT NULL,
+	CONSTRAINT [pk_dim_{{ Dimension.Name }}] PRIMARY KEY CLUSTERED 
+	(
+		[id_dim_{{ Dimension.Name }}] ASC 
+	),
+	CONSTRAINT [uk_dim_{{ Dimension.Name }}] UNIQUE NONCLUSTERED 
+	(
+		{{ Dimension.Columns.UniqueKey | Map: "Name" | Join: "," }}
+		{% if Dimension.Columns.SCD2 != empty -%},[scd2_valid_from] {% endif -%}
+	)
+)
+GO
+
+ALTER TABLE [dwh].[dim_{{ Dimension.Name }}] ADD  CONSTRAINT [df_pk_dim_{{ Dimension.Name }}]  DEFAULT (NEXT VALUE FOR [dwh].[sq_dimensions]) FOR [id_dim_{{ Dimension.Name }}]
+GO
+
+/*
+	===== CREATE ETL PROCEDURES
+*/
+
+USE [{{ Connections.Staging.Database }}]
+GO
+
+IF (OBJECT_ID('[etl].[stp_merge_dim_{{ Dimension.Name }}]') IS NOT NULL)
+	DROP PROCEDURE [etl].[stp_merge_dim_{{ Dimension.Name }}];
+GO
+
+IF (OBJECT_ID('[etl].[stp_add_dummy_dim_{{ Dimension.Name }}]') IS NOT NULL)
+	DROP PROCEDURE [etl].[stp_add_dummy_dim_{{ Dimension.Name }}];
+GO
+
+{% if Dimension.Columns.SCD1 != empty or Dimension.Columns.SCD2 != empty -%}
+
+CREATE PROCEDURE [etl].[stp_merge_dim_{{ Dimension.Name }}]
+AS
+SET XACT_ABORT ON;
+BEGIN TRAN;
+
+{% if Dimension.Columns.SCD1 != empty -%}
+-- Manage SCD 1 Updates
+MERGE
+	[proxy_dwh].[dim_{{ Dimension.Name }}] tgt
+USING
+	[tmp].[dim_{{ Dimension.Name }}] src
+ON
+	{% for column in Dimension.Columns.UniqueKey -%}tgt.[{{ column.Name }}] = src.[{{ column.Name }}] {% if forloop.last == false -%} AND {% endif -%} {% endfor %}
+	AND src.scd_type = 1
+WHEN MATCHED THEN
+	UPDATE SET
+		{% for column in Dimension.Columns.SCD1 -%}
+		tgt.[{{ column.Name }}] = src.[{{ column.Name }}],
+		{% endfor -%}
+ 		tgt.[scd1_checksum] = src.[scd1_checksum],
+ 		tgt.[$sq_log_id] = src.[$sq_log_id]
+;
+{% endif -%}
+
+{% if Dimension.Columns.SCD2 != empty -%}
+-- Manage SCD 2 Updates
+-- *** NOTE: Temp Table needed in order to workaround SEQUENCE + MERGE limitations
+SELECT TOP 0
+	{{ Dimension.Columns.UniqueKey | Map: "Name" | Join: "," }}, 
+	{{ Dimension.Columns.SCD1| Map: "Name" | Join: "," }},
+	{{ Dimension.Columns.SCD2| Map: "Name" | Join: "," }}, 
+	scd1_checksum, scd2_checksum, scd2_valid_from, scd2_valid_to, [$sq_log_id]
+INTO
+	#mr
+FROM
+	[tmp].[dim_{{ Dimension.Name }}];
+
+INSERT INTO #mr
+	({{ Dimension.Columns.UniqueKey | Map: "Name" | Join: "," }},{{ Dimension.Columns.SCD1| Map: "Name" | Join: "," }},{{ Dimension.Columns.SCD2| Map: "Name" | Join: "," }},scd1_checksum, scd2_checksum, scd2_valid_from, scd2_valid_to, [$sq_log_id])
+SELECT
+	{{ Dimension.Columns.UniqueKey | Map: "Name" | Join: "," }},{{ Dimension.Columns.SCD1| Map: "Name" | Join: "," }},{{ Dimension.Columns.SCD2| Map: "Name" | Join: "," }},scd1_checksum, scd2_checksum, scd2_valid_from, scd2_valid_to, [$sq_log_id]
+FROM
+(
+	MERGE
+		proxy_dwh.[dim_{{ Dimension.Name }}] tgt
+	USING
+		tmp.[dim_{{ Dimension.Name }}] src
+	ON
+		tgt.[id_dim_{{ Dimension.Name }}] = src.[id_dim_{{ Dimension.Name }}]
+		AND src.scd_type = 2
+	WHEN MATCHED THEN
+		UPDATE SET
+		tgt.scd2_valid_to = dateadd(day, -1, src.scd2_valid_from)
+	OUTPUT
+		src.{{ Dimension.Columns.UniqueKey | Map: "Name" | Join: ", src." }}, 
+		src.{{ Dimension.Columns.SCD1| Map: "Name" | Join: ", src." }},
+		src.{{ Dimension.Columns.SCD2| Map: "Name" | Join: ", src." }}, 
+		src.scd1_checksum, src.scd2_checksum, src.scd2_valid_from, src.scd2_valid_to, src.[$sq_log_id]
+) AS merge_result
+;
+
+INSERT INTO proxy_dwh.[dim_{{ Dimension.Name }}]
+	({{ Dimension.Columns.UniqueKey | Map: "Name" | Join: "," }},{{ Dimension.Columns.SCD1| Map: "Name" | Join: "," }},{{ Dimension.Columns.SCD2| Map: "Name" | Join: "," }},scd1_checksum, scd2_checksum, scd2_valid_from, scd2_valid_to, [$sq_log_id])
+SELECT
+	{{ Dimension.Columns.UniqueKey | Map: "Name" | Join: "," }},{{ Dimension.Columns.SCD1| Map: "Name" | Join: "," }},{{ Dimension.Columns.SCD2| Map: "Name" | Join: "," }},scd1_checksum, scd2_checksum, scd2_valid_from, scd2_valid_to, [$sq_log_id]
+FROM
+	#mr
+
+COMMIT TRAN;
+GO
+{% endif -%}
+
+{% endif -%}
+
+CREATE PROCEDURE [etl].[stp_add_dummy_dim_{{ Dimension.Name }}]
+AS
+IF (NOT EXISTS(SELECT * FROM [proxy_dwh].[dim_{{ Dimension.Name }}] WHERE [id_dim_{{ Dimension.Name }}] = -1))
+BEGIN
+	INSERT INTO [proxy_dwh].[dim_{{ Dimension.Name }}]
+	([id_dim_{{ Dimension.Name }}], {{ Dimension.Columns.UniqueKey | Map: 'Name' | Join: ',' }}
+	{% if Dimension.Columns.SCD1 != empty -%}
+	-- SCD1
+	, {{ Dimension.Columns.SCD1 | Map: 'Name' | Join: ',' }}
+	, [scd1_checksum]
+	{% endif -%}
+	{% if Dimension.Columns.SCD2 != empty -%}
+	-- SCD2
+	, {{ Dimension.Columns.SCD2 | Map: 'Name' | Join: ',' }}
+	, [scd2_checksum]
+	, [scd2_valid_from]
+	, [scd2_valid_to]
+	{% endif -%}
+	, [$sq_log_id])
+	VALUES
+	(-1, {{ Dimension.Columns.UniqueKey | Map: 'Default' | Join: ',' }}
+	{% if Dimension.Columns.SCD1 != empty -%}
+	-- SCD1
+	, {{ Dimension.Columns.SCD1 | Map: 'Default' | Join: ',' }} 
+	, -1
+	{% endif -%}
+	{% if Dimension.Columns.SCD2 != empty -%}
+	-- SCD2
+	, {{ Dimension.Columns.SCD2 | Map: 'Default' | Join: ',' }} 
+	, -1
+	, '00010101'
+	, '99991231'
+	{% endif -%}
+	, -1)
+END
+GO
+

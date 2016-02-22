@@ -81,10 +81,21 @@
     <None Include="output\execute-load-sql.ps1" />
     <None Include="SolidQ.ABI.exe.config" />
     <None Include="support\setup\setup-db.ps1" />
+    <None Include="templates\extract\viw\full-viw-single.1.biml.liquid" />
+    <None Include="templates\extract\viw\full-viw-single.1.sql.liquid" />
+    <None Include="templates\extract\_full.liquid" />
+    <None Include="templates\load\dimension-bk.1.biml.liquid" />
+    <None Include="templates\load\dimension-bk.1.sql.liquid" />
+    <None Include="templates\load\dimension-bk.2.biml.liquid" />
+    <None Include="templates\load\dimension-bk.2.sql.liquid" />
+    <None Include="templates\load\dimension-sk.1.biml.liquid" />
+    <None Include="templates\load\dimension-sk.1.sql.liquid" />
+    <None Include="templates\load\fact-full.1.biml.liquid" />
+    <None Include="templates\load\fact-full.1.sql.liquid" />
+    <None Include="templates\load\factless-full.1.biml.liquid" />
+    <None Include="templates\load\factless-full.1.sql.liquid" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="templates\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
