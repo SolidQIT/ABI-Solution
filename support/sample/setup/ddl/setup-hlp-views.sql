@@ -3,6 +3,10 @@
 # Adaptive BI Framework 3.0
 # Sample Reference Solution
 #
+# Last Revision: 2
+# Last Date: 2016-02-25
+# Last Author: dmauri
+#
 */
 
 USE [AdaptiveBI30_HLP]

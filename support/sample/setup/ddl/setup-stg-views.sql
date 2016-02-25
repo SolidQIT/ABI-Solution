@@ -3,6 +3,10 @@
 # Adaptive BI Framework 3.0
 # Sample Reference Solution
 #
+# Last Revision: 1
+# Last Date: 2016-02-25
+# Last Author: dmauri
+#
 # Notes:
 # The script must be executed *after* having created and executed the ETL-STG SSIS solution
 #

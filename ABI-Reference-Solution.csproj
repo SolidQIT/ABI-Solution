@@ -45,7 +45,8 @@
     <Content Include="support\sample\setup\ddl\setup-cfg-views.sql" />
     <Content Include="support\sample\setup\ddl\setup-hlp-views.sql" />
     <Content Include="support\sample\setup\ddl\setup-stg-views.sql" />
-    <Content Include="support\sample\setup\setup-views.sql" />
+    <Content Include="support\sample\setup\setup-views-2.sql" />
+    <Content Include="support\sample\setup\setup-views-1.sql" />
     <Content Include="support\setup\ddl\setup-cfg-objects.sql" />
     <Content Include="support\setup\ddl\setup-log-objects.sql" />
     <Content Include="support\setup\ddl\setup-md-objects.sql" />
@@ -82,6 +83,8 @@
     <None Include="output\execute-load-sql.ps1" />
     <None Include="README.md" />
     <None Include="SolidQ.ABI.exe.config" />
+    <None Include="support\sample\setup\setup-views-2.ps1" />
+    <None Include="support\sample\setup\setup-views-1.ps1" />
     <None Include="support\setup\setup-db.ps1" />
     <None Include="templates\extract\viw\full-viw-single.1.biml.liquid" />
     <None Include="templates\extract\viw\full-viw-single.1.sql.liquid" />
