@@ -53,6 +53,7 @@
     <Content Include="support\setup\setup-objects.sql" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="LICENSE" />
     <None Include="metadata\common\connections.json" />
     <None Include="metadata\common\project.json" />
     <None Include="metadata\extract\Person__Person.json" />
@@ -79,6 +80,7 @@
     <None Include="NLog.config" />
     <None Include="output\execute-extract-sql.ps1" />
     <None Include="output\execute-load-sql.ps1" />
+    <None Include="README.md" />
     <None Include="SolidQ.ABI.exe.config" />
     <None Include="support\setup\setup-db.ps1" />
     <None Include="templates\extract\viw\full-viw-single.1.biml.liquid" />
