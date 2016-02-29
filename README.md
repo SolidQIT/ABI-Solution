@@ -67,6 +67,16 @@ The ABI Framework environment is now set up and ready to be used.
 
 ### Creating the Data Warehouse
 
+The ABI Framework allows you to automate the generation of the "E" and "L" phase of the ETL process, by applying well-known design patterns, in the form of *templates* that allows you to make sure that the best practices and well-known solutions to common problems are automatically applied and used.
+
+The templates provided with the reference solution are the following ones
+
+Staging Table Full Load
+[Transactional Fact Table Full Load](docs/transaction-fact-table-full-load.md)
+Slowly Changing Dimension Type 1
+Slowly Changing Dimension Type 2
+
+
 ####Extract Phase
 TDB
 

@@ -54,6 +54,7 @@
     <Content Include="support\setup\setup-objects.sql" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="docs\transaction-fact-table-full-load.md" />
     <None Include="LICENSE" />
     <None Include="metadata\common\connections.json" />
     <None Include="metadata\common\project.json" />
@@ -81,7 +82,7 @@
     <None Include="NLog.config" />
     <None Include="output\execute-extract-sql.ps1" />
     <None Include="output\execute-load-sql.ps1" />
-    <None Include="README.md" />
+    <None Include="readme.md" />
     <None Include="SolidQ.ABI.exe.config" />
     <None Include="support\sample\setup\setup-views-2.ps1" />
     <None Include="support\sample\setup\setup-views-1.ps1" />
