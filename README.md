@@ -71,10 +71,10 @@ The ABI Framework allows you to automate the generation of the "E" and "L" phase
 
 The templates provided with the reference solution are the following ones
 
-Staging Table Full Load
-[Transactional Fact Table Full Load](docs/transaction-fact-table-full-load.md)
-Slowly Changing Dimension Type 1
-Slowly Changing Dimension Type 2
+- Staging Table Full Load
+- [Transactional Fact Table Full Load](docs/transaction-fact-table-full-load.md)
+- Slowly Changing Dimension Type 1
+- Slowly Changing Dimension Type 2
 
 
 ####Extract Phase
