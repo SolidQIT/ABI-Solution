@@ -4,11 +4,11 @@
 ### Introduction
 This sample solution can be used to get started using the Adaptive BI (ABI) Framework 3.0 in order to automate the building of your DWH solution.
 
-The aim of the ABI Framework is to bring do to zero the time needed to develop the E and the L part of and ETL solution, so that BI developers can concentrate mostly on the most added value part of the ETL, the Transformation phase.
+The aim of the ABI Framework is to bring down to zero the time needed to develop the E and the L part of and ETL solution, so that BI developers can concentrate mostly on the most added value part of the ETL, the Transformation phase.
 
 To do this a metadata-driven, template-based, engineered approach is needed. The ABI Framework allows you to define your own template and your own metadata structure in order to give you as much as freedom you need.
 
-The sample solution creates a simple Data Warehouse using the Microsoft AdventureWorks 2012 sample database as the data source and provides you some standard templates to deal with the most common design pattern in BI
+The sample solution creates a simple Data Warehouse using the Microsoft AdventureWorks 2012 sample database as the data source and provides you some standard templates to deal with the some of most common design pattern in BI
 
 - Staging Table Full Load
 - Fact Table Full Load
@@ -16,17 +16,17 @@ The sample solution creates a simple Data Warehouse using the Microsoft Adventur
 
 The templates provides both the SQL scripts needed to create the objects in SQL Server and also BIML file in order to create the SSIS Package.
 
-We choose to use BIML as intermediate artifact since it's really easy to generate it and have it turned into a SSIS Package via BIDS Helper. We encourage you to discover more about BIML here: http://bimlscript.com/.
+We choose to use BIML as intermediate artifact since it's really easy to generate it and have it turned into a SSIS Package via [BIDS Helper](https://bidshelper.codeplex.com/). We encourage you to discover more about BIML here: http://bimlscript.com/.
 
-Metadata is stored in JSON files for maximum flexibility and happiness for developers.
+Metadata is stored in JSON files for maximum flexibility and happiness of developers.
 
 ### Note
-Please note this is not a step-by-step instruction document. Some experience in working with SQL Server and BI is needed. For example I give for granted that you know how to create a SSIS Package, to attach a SQL Server database or to install and use a Visual Studio plugin
+Please note this is not a step-by-step instruction document. Some experience in working with SQL Server and BI is needed. For example we give for granted that you know how to create a SSIS Package, to attach a SQL Server database or to install and use a Visual Studio plugin, and so on.
 
 ### Getting Started
 
 #### Environment Setup
-Download the project via GitHub, by clicking on the "Download Zip" icon. Unzip it into the folder you prefer. The solution contains the templates, sample metadata and the ABI Framework compiler, the tool that will merge metadata and templates into SQL and BIML files. In addition to that, you need to have installed on your development machine SQL Server and its development tools:
+Download the project via GitHub, by clicking on the "Download Zip" icon. Unzip it into the folder you prefer. The solution contains the templates, sample metadata and the [ABI Framework compiler](https://github.com/SolidQIT/ABI-Compiler), the tool that will merge metadata and templates into SQL and BIML files. In addition to that, you need to have installed on your development machine SQL Server and its development tools:
 
 [SQL Server 2014](https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2014)
 [SQL Server Data Tools and SQL Server Data Tools - BI](https://msdn.microsoft.com/en-us/library/mt674919.aspx)
@@ -76,14 +76,13 @@ The templates provided with the reference solution are the following ones
 - Slowly Changing Dimension Type 1
 - Slowly Changing Dimension Type 2
 
-
-####Extract Phase
+#### Extract Phase
 TDB
 
-####Transform Phase
+#### Transform Phase
 TDB
 
-####Load Phase
+#### Load Phase
 TDB
 
 > Written with [StackEdit](https://stackedit.io/).
