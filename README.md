@@ -1,5 +1,5 @@
 # Adaptive BI Framework 3.0 
-## Reference Solution v 1.0
+## Reference Solution v 1.0.1
 
 ### Introduction
 This sample solution can be used to get started using the Adaptive BI (ABI) Framework 3.0 in order to automate the building of your DWH solution.
