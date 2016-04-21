@@ -1,6 +1,10 @@
 # Adaptive BI Framework 3.0 
 ## Reference Solution v 1.0.1
 
+### Before you begin
+If you have download the solution from the web, Windows will block by default the .dll that contains the plugins. In order to unblock the .ddl and then be able to use plugin, you just have the right click on the .dll in the plugin folders and select the option "Unblock" in the Properties window.
+IF you don't do this, you won't get any specific error, but the plugin won't be simply recognized.
+
 ### Introduction
 This sample solution can be used to get started using the Adaptive BI (ABI) Framework 3.0 in order to automate the building of your DWH solution.
 
