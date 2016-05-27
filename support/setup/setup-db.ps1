@@ -1,8 +1,8 @@
 ﻿#
 # Adaptive BI Framework 3.0
 #
-# Last Revision: 2
-# Last Date: 2016-02-25
+# Last Revision: 3
+# Last Date: 2016-05-27
 # Last Author: dmauri
 #
 # Setup databases
@@ -21,6 +21,10 @@
 
 # Target Server/Instance
 $targetServer = "localhost";
+
+# Data & Log apth
+$dataPath = "D:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA";
+$logPath = "D:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA";
 
 # Root database name
 $databaseName = "AdaptiveBI30";
@@ -60,10 +64,6 @@ $dbFileSize = 100
 
 # AutoGrow size in MB
 $dbFileGrowth = 100
-
-# Data & Log apth
-$dataPath = "D:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA";
-$logPath = "D:\Program Files\Microsoft SQL Server\MSSQL12.MSSQLSERVER\MSSQL\DATA";
 
 #
 # Start
