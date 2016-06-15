@@ -10,4 +10,4 @@
 $targetServer = "localhost";
 
 # Execute setup scripts
-& sqlcmd -i setup-views-1.sql -S $targetServer
+& sqlcmd -i setup-objects.sql -S $targetServer

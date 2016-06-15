@@ -34,6 +34,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="CommandLine.dll" />
+    <Content Include="docs\how-the-abi-compiler-works.txt" />
     <Content Include="DotLiquid.dll" />
     <Content Include="Newtonsoft.Json.dll" />
     <Content Include="Newtonsoft.Json.Schema.dll" />
@@ -54,6 +55,7 @@
     <Content Include="support\setup\setup-objects.sql" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="docs\staging-table-full-load.md" />
     <None Include="docs\transaction-fact-table-full-load.md" />
     <None Include="LICENSE" />
     <None Include="metadata\common\connections.json" />
@@ -87,6 +89,7 @@
     <None Include="support\sample\setup\setup-views-2.ps1" />
     <None Include="support\sample\setup\setup-views-1.ps1" />
     <None Include="support\setup\setup-db.ps1" />
+    <None Include="support\setup\setup-objects.ps1" />
     <None Include="templates\extract\viw\full-viw-single.1.biml.liquid" />
     <None Include="templates\extract\viw\full-viw-single.1.sql.liquid" />
     <None Include="templates\extract\_full.liquid" />
