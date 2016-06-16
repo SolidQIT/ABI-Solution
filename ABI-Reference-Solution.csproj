@@ -81,6 +81,7 @@
     <None Include="metadata\load\fact\OrderDetails.json" />
     <None Include="metadata\load\fact\Orders.json" />
     <None Include="metadata\_schemas\extract\full-viw.json" />
+    <None Include="metadata\_schemas\load\dimension_sk.json" />
     <None Include="NLog.config" />
     <None Include="output\execute-extract-sql.ps1" />
     <None Include="output\execute-load-sql.ps1" />
@@ -106,6 +107,11 @@
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties metadata_4load_4dimension_4Dates_1json__JSONSchema="..\..\_schemas\load\dimension_sk.json" />
+    </VisualStudio>
+  </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

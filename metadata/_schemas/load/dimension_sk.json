@@ -1,0 +1,189 @@
+﻿{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "title": "ABI Metadata",
+  "description": "Load a dimension using a provided Surrogate Key",
+  "properties": {
+    "ABI3": {
+      "type": "object",
+      "title": "Header",
+      "description": "Set mandatory directives for ABI Compiler",
+      "properties": {
+        "Template": {
+          "type": "object",
+          "title": "Template",
+          "description": "Specifiy with template will be used.",
+          "properties": {
+            "Phase": {
+              "type": "string",
+              "title": "Phase",
+              "enum": [ "load" ],
+              "description": "In which Phase this metadata will be working"
+            },
+            "Pattern": {
+              "type": "string",
+              "title": "Pattern",
+              "enum": [ "dimension" ],
+              "description": "Which design pattern will be used (eg: full)"
+            },
+            "Implementation": {
+              "type": "string",
+              "title": "Implementation",
+              "enum": [ "sk" ],
+              "description": "Which implementation of the design pattern will be used)"
+            },
+            "Version": {
+              "type": "integer",
+              "title": "Version",
+              "default": "1",
+              "description": "Which version of the design pattern will be used"
+            }
+          },
+          "required": [
+            "Phase",
+            "Pattern",
+            "Implementation",
+            "Version"
+          ]
+        },
+        "Metadata": {
+          "type": "object",
+          "title": "Metadata",
+          "description": "Information about the present file",
+          "properties": {
+            "Version": {
+              "type": "integer",
+              "title": "Version",
+              "default": "1",
+              "description": "Version of the presente file"
+            }
+          },
+          "required": [
+            "Version"
+          ]
+        }
+      },
+      "required": [
+        "Template",
+        "Metadata"
+      ]
+    },
+    "Dimension": {
+      "type": "object",
+      "title": "Dimension",
+      "description": "Definition of the dimension",
+      "properties": {
+        "Name": {
+          "type": "string",
+          "title": "Name",
+          "description": "Dimension name"
+        },
+        "Source": {
+          "type": "object",
+          "title": "Source",
+          "description": "The view that exposes data for the dimension",
+          "properties": {
+            "Schema": {
+              "type": "string",
+              "title": "Schema",
+              "description": "The schema in which the view exists"
+            },
+            "Name": {
+              "type": "string",
+              "title": "Name",
+              "description": "The name of the view"
+            },
+            "FullName": {
+              "type": "string",
+              "title": "FullName",
+              "description": "The full name of the view (<schema>.<name>)",
+              "default": "[$(Dimension.Source.Schema)].[$(Dimension.Source.Name)]"
+            }
+          },
+          "required": [
+            "Schema",
+            "Name",
+            "FullName"
+          ]
+        },
+        "Columns": {
+          "type": "object",
+          "title": "Columns",
+          "description": "Description of the columns used in the dimenion",
+          "properties": {
+            "SurrogateKey": {
+              "type": "object",
+              "title": "SurrogateKey",
+              "description": "Specify which column is the Surrogate Key",
+              "properties": {
+                "Name": {
+                  "type": "string",
+                  "title": "Name",
+                  "description": "The column name"
+                },
+                "Type": {
+                  "type": "string",
+                  "title": "Type",
+                  "description": "The column data type"
+                },
+                "Default": {
+                  "type": "string",
+                  "title": "Default",
+                  "description": "The column default value"
+                }
+              },
+              "required": [
+                "Name",
+                "Type",
+                "Default"
+              ]
+            },
+            "SCD1": {
+              "type": "array",
+              "title": "SCD1",
+              "description": "Define the columns that supports a SCD1 change type",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "Name": {
+                    "type": "string",
+                    "title": "Name",
+                    "description": "The column name"
+                  },
+                  "Type": {
+                    "type": "string",
+                    "title": "Type",
+                    "description": "The column data type"
+                  },
+                  "Default": {
+                    "type": "string",
+                    "title": "Default",
+                    "description": "The column default value"
+                  }
+                },
+                "required": [
+                  "Name",
+                  "Type",
+                  "Default"
+                ]
+              }
+            }
+          },
+          "required": [
+            "SurrogateKey",
+            "SCD1"
+          ]
+        }
+      },
+      "required": [
+        "Name",
+        "Source",
+        "Columns"
+      ]
+    }
+  },
+  "required": [
+    "ABI3",
+    "Dimension"
+  ]
+}

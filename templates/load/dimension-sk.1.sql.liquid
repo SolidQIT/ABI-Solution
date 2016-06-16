@@ -146,21 +146,11 @@ BEGIN
 	, {{ Dimension.Columns.SCD1 | Map: 'Name' | Join: ',' }}
 	, [scd1_checksum]
 	{% endif -%}
-	{% if Dimension.Columns.SCD2 != empty -%}
-	-- SCD2
-	, {{ Dimension.Columns.SCD2 | Map: 'Name' | Join: ',' }}
-	, [scd2_checksum]
-	{% endif -%}
 	, [$sq_log_id])
 	VALUES
 	({{ Dimension.Columns.SurrogateKey.Default }}
 	{% if Dimension.Columns.SCD1 != empty -%}
 	-- SCD1
-	, {{ Dimension.Columns.SCD1 | Map: 'Default' | Join: ',' }} 
-	, -1
-	{% endif -%}
-	{% if Dimension.Columns.SCD2 != empty -%}
-	-- SCD2
 	, {{ Dimension.Columns.SCD1 | Map: 'Default' | Join: ',' }} 
 	, -1
 	{% endif -%}
