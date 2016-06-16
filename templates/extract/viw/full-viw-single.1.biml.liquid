@@ -23,6 +23,7 @@
 		            Implementation	  : Single 
 		            Type			        : BIML
 		            Author			      : dmauri
+                Version           : 1.1
                 
               Description:
                 Full load of a destination table from a source view. 
@@ -35,6 +36,13 @@
         <Variable Name="IsActive" DataType="String" Namespace="User">N</Variable>
         <Variable Name="LogRowId" DataType="Int32" Namespace="User">0</Variable> 
       </Variables>
+      <Connections>
+        <Connection ConnectionName="MD" Id="00000000-0000-0000-0000-000000000001" />
+        <Connection ConnectionName="HLP" Id="00000000-0000-0000-0000-000000000002" />
+        <Connection ConnectionName="LOG" Id="00000000-0000-0000-0000-000000000003" />
+        <Connection ConnectionName="CFG" Id="00000000-0000-0000-0000-000000000004" />
+        <Connection ConnectionName="{{ Object.DestinationTable.Connection.Name }}" Id="00000000-0000-0000-0000-000000000005" />
+      </Connections>
       <Tasks>
         <ExecuteSQL Name="Check Load Active" ConnectionName="MD" ResultSet="SingleRow">
           <DirectInput>SELECT active_for_load AS active FROM md.[extract_phase] WHERE source_object_name = '{{ Object.SourceObject.Name }}';</DirectInput>

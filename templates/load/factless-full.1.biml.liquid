@@ -21,7 +21,7 @@
                 Implementation	  : Full 
 		            Type			        : BIML
 		            Author			      : dmauri
-                Version           : 1    
+                Version           : 1.1    
                 
               Description:
                 Load a factless fact table using a full load pattern.
@@ -35,6 +35,12 @@
           <![CDATA["<inserted_rows>" + (DT_WSTR, 12)@[User::LoadedRows] + "</inserted_rows>"]]>
         </Variable>
       </Variables>
+      <Connections>
+        <Connection ConnectionName="LOG" Id="00000000-0000-0000-0000-000000000001" />
+        <Connection ConnectionName="TMP" Id="00000000-0000-0000-0000-000000000002" />
+        <Connection ConnectionName="STG" Id="00000000-0000-0000-0000-000000000003" />
+        <Connection ConnectionName="DWH" Id="00000000-0000-0000-0000-000000000004" />
+      </Connections>
       <Tasks>
         <ExecuteSQL Name="Set Load Start" ConnectionName="LOG" ResultSet="SingleRow">
           <DirectInput>
