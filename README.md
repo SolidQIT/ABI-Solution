@@ -1,4 +1,4 @@
-# Adaptive BI Framework 3.0 
+# Adaptive BI Framework 3.0
 ## Reference Solution v 1.0.1
 
 ### Before you begin
@@ -48,7 +48,7 @@ You have to attach the AdventureWorks2012 database to your SQL Server instance. 
 [BIDS Helper](https://bidshelper.codeplex.com/) (older, supports up to SQL Server 2014)
 [BIML Express](https://www.varigence.com/BimlExpress) (newer with support for SQL Server 2016)
 
-and the last component you need is an additional component for Integration Services, needed to calculate hash values, that it used in the Slowly Changing Dimension template 
+and the last component you need is an additional component for Integration Services, needed to calculate hash values, that it used in the Slowly Changing Dimension template
 
 [SSIS Multiple Hash](https://ssismhash.codeplex.com/)
 
@@ -107,8 +107,8 @@ In this first phase you will extract the data needed for loading the Data Wareho
 
 The data to be loaded in the Staging area is exposed by the views mentioned before. All you have to do right now, for each view, is to
 
- - create the target destination table 
- - create a SSIS package to load such table 
+ - create the target destination table
+ - create a SSIS package to load such table
 
 Both points should be done applying the best practices and your standards. For this example the standard requires that we log in the "LOG" database how many rows has been loaded.
 
@@ -120,13 +120,13 @@ Take a look at the ``Person__Person.json`` file the see how the metadata is orga
 
 To compile the ``Person__Person.json`` file into something usable you just have to open a command prompt, go to the solution folder and execute the compiler:
 
-	cd C:\Work\GitHub\ABI-Solution
-	SolidQ.ABI.exe compile extract/Person__Person.json
+    cd C:\Work\GitHub\ABI-Solution
+    SolidQ.ABI.exe compile extract/Person__Person.json
 
 If no errors are reported you will find two *artifacts* in the output folder, under the ``Person__Person`` directory, that are the result of the compilation process. The used template generates two artifacts: one .sql file and one .biml file:
 
-``Person__Person.sql``
-``Person__Person.biml``
+    Person__Person.sql
+    Person__Person.biml
 
 The first one contains the T-SQL code to create the destination table and, for this sample, also to update the "MD" database. The file is **not** executed automatically but you have to execute it yourself for maximum safety and security. The .biml file has to be loaded into Visual Studio and using the BIDS Helper or BIML Express, turned into a SSIS Package.
 
@@ -134,7 +134,7 @@ If you want to compile all the metadata at once - in the sample metadata for all
 
 	SolidQ.ABI.exe compile extract/*
 
-And voil‡: all the SQL and BIML file will be created for you in a couple of seconds.
+And voil√†: all the SQL and BIML file will be created for you in a couple of seconds.
 
 #### Transform Phase
 TDB
