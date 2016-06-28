@@ -1,5 +1,5 @@
 # Adaptive BI Framework 3.0
-## Reference Solution v 1.0.1
+## Reference Solution v 1.0.2
 
 ### Before you begin
 If you have download the solution from the web, Windows will block by default the .dll that contains the plugins. In order to unblock the .dll and then be able to use plugin, you just have the right click on the .dll in the plugin folders and select the option "Unblock" in the Properties window.
