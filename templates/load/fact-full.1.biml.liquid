@@ -9,7 +9,7 @@
     <Package Name="Load_FACT_{{ Fact.Name }}" ConstraintMode="Parallel" ProtectionLevel="EncryptSensitiveWithUserKey">
       <Annotations>
         <Annotation AnnotationType="Description">
-          <![CDATA[ 
+          <![CDATA[
               SolidQ Adaptive BI Framework 3.0
 
 	            Compilation:
@@ -18,11 +18,11 @@
 	            Template:
 		            Phase			        : Load
 		            Pattern			      : Fact
-                Implementation	  : Full 
+                Implementation	  : Full
 		            Type			        : BIML
 		            Author			      : dmauri
-                Version           : 1.1    
-                
+                Version           : 1.1
+
               Description:
                 Load a fact table using a full load pattern.
           ]]>
@@ -36,10 +36,10 @@
         </Variable>
       </Variables>
       <Connections>
-        <Connection ConnectionName="LOG" Id="00000000-0000-0000-0000-000000000001" />
-        <Connection ConnectionName="TMP" Id="00000000-0000-0000-0000-000000000002" />
-        <Connection ConnectionName="STG" Id="00000000-0000-0000-0000-000000000003" />
-        <Connection ConnectionName="DWH" Id="00000000-0000-0000-0000-000000000004" />
+        <Connection ConnectionName="STG" Id="00000000-0000-0000-0000-000000000001"/>
+        <Connection ConnectionName="DWH" Id="00000000-0000-0000-0000-000000000002"/>
+        <Connection ConnectionName="TMP" Id="00000000-0000-0000-0000-000000000003"/>
+        <Connection ConnectionName="LOG" Id="00000000-0000-0000-0000-000000000004"/>
       </Connections>
       <Tasks>
         <ExecuteSQL Name="Set Load Start" ConnectionName="LOG" ResultSet="SingleRow">
@@ -79,14 +79,14 @@
                 </OleDbSource>
                 {% for lookup in Fact.Dimensions.Lookups -%}
                 <Lookup Name="Lookup {{ lookup.Name }}" OleDbConnectionName="DWH" NoMatchBehavior="IgnoreFailure">
-                  <DirectInput>SELECT id_dim_{{ lookup.Name }}, {{ lookup.LookupKeys | Map: 'DimensionColumn' | Join: ',' }} FROM [dwh].[dim_{{ lookup.Dimension }}]</DirectInput>
+                  <DirectInput>SELECT id_dim_{{ lookup.Dimension }}, {{ lookup.LookupKeys | Map: 'DimensionColumn' | Join: ',' }} FROM [dwh].[dim_{{ lookup.Dimension }}]</DirectInput>
                   <Inputs>
                     {% for lookupkey in lookup.LookupKeys -%}
                     <Column SourceColumn="{{ lookupkey.FactColumn }}" TargetColumn="{{ lookupkey.DimensionColumn }}"/>
                     {% endfor -%}
                   </Inputs>
                   <Outputs>
-                    <Column SourceColumn="id_dim_{{ lookup.Name }}" TargetColumn="id_dim_{{ lookup.Name }}" />
+                    <Column SourceColumn="id_dim_{{ lookup.Dimension }}" TargetColumn="id_dim_{{ lookup.Name }}" />
                   </Outputs>
                 </Lookup>
                 {% endfor -%}

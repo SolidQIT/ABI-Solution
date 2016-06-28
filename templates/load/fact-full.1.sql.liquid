@@ -8,11 +8,11 @@
 	Template:
 		Phase			: Load
 		Pattern			: Fact
-		Implementation	: Full 
+		Implementation	: Full
 		Type			: T-SQL
 		Author			: dmauri
 		Version			: 1
-	
+
 */
 
 /*
@@ -22,7 +22,7 @@
 USE [{{ Connections.DataWarehouse.Database }}]
 GO
 
-IF (SCHEMA_ID('dwh') IS NULL) 
+IF (SCHEMA_ID('dwh') IS NULL)
 	EXECUTE('CREATE SCHEMA [dwh];')
 GO
 
@@ -37,9 +37,9 @@ CREATE TABLE [dwh].[fact_{{ Fact.Name }}]
 	-- Dimensions
 	{% for column in Fact.Dimensions.PassThrough -%}
 	[{{ column }}] INT NOT NULL,
-	{% endfor -%}	
+	{% endfor -%}
 	{% for lookup in Fact.Dimensions.Lookups -%}
-	[id_dim_{{ lookup.Dimension }}] INT NOT NULL,
+	[id_dim_{{ lookup.Name }}] INT NOT NULL,
 	{% endfor -%}
 
 	-- Measures
@@ -53,11 +53,10 @@ CREATE TABLE [dwh].[fact_{{ Fact.Name }}]
 	{% endfor -%}
 
 	[$sq_log_id] [INT] NOT NULL,
-	
-	CONSTRAINT [pk_fact_{{ Fact.Name }}] PRIMARY KEY CLUSTERED 
+
+	CONSTRAINT [pk_fact_{{ Fact.Name }}] PRIMARY KEY CLUSTERED
 	(
 		[id_fact_{{ Fact.Name }}] ASC
 	)
 )
 GO
-
