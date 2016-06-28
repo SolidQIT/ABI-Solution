@@ -21,7 +21,7 @@
                 Implementation	  : Full 
 		            Type			        : BIML
 		            Author			      : dmauri
-                Version           : 1.1    
+                Version           : 1.2    
                 
               Description:
                 Load a fact table using a full load pattern.
@@ -79,14 +79,14 @@
                 </OleDbSource>
                 {% for lookup in Fact.Dimensions.Lookups -%}
                 <Lookup Name="Lookup {{ lookup.Name }}" OleDbConnectionName="DWH" NoMatchBehavior="IgnoreFailure">
-                  <DirectInput>SELECT id_dim_{{ lookup.Name }}, {{ lookup.LookupKeys | Map: 'DimensionColumn' | Join: ',' }} FROM [dwh].[dim_{{ lookup.Dimension }}]</DirectInput>
+                  <DirectInput>SELECT id_dim_{{ lookup.Dimension }}, {{ lookup.LookupKeys | Map: 'DimensionColumn' | Join: ',' }} FROM [dwh].[dim_{{ lookup.Dimension }}]</DirectInput>
                   <Inputs>
                     {% for lookupkey in lookup.LookupKeys -%}
                     <Column SourceColumn="{{ lookupkey.FactColumn }}" TargetColumn="{{ lookupkey.DimensionColumn }}"/>
                     {% endfor -%}
                   </Inputs>
                   <Outputs>
-                    <Column SourceColumn="id_dim_{{ lookup.Name }}" TargetColumn="id_dim_{{ lookup.Name }}" />
+                    <Column SourceColumn="id_dim_{{ lookup.Dimension }}" TargetColumn="id_dim_{{ lookup.Name }}" />
                   </Outputs>
                 </Lookup>
                 {% endfor -%}

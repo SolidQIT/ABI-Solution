@@ -60,6 +60,7 @@
     <None Include="LICENSE" />
     <None Include="metadata\common\connections.json" />
     <None Include="metadata\common\project.json" />
+    <None Include="metadata\extract\Person__Address.json" />
     <None Include="metadata\extract\Person__Person.json" />
     <None Include="metadata\extract\Production__Product.json" />
     <None Include="metadata\extract\Production__ProductCategory.json" />
@@ -71,6 +72,7 @@
     <None Include="metadata\extract\Sales__SalesOrderHeaderSalesReason.json" />
     <None Include="metadata\extract\Sales__SalesReason.json" />
     <None Include="metadata\extract\Sales__Store.json" />
+    <None Include="metadata\load\dimension\Addresses.json" />
     <None Include="metadata\load\dimension\Customers.json" />
     <None Include="metadata\load\dimension\Dates.json" />
     <None Include="metadata\load\dimension\Orders.json" />

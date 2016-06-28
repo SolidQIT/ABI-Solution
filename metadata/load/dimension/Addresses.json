@@ -1,0 +1,65 @@
+{
+  "$schema": "/metadata/_schemas/load/dimension.json",
+  "ABI3": {
+    "Template": {
+      "Phase": "load",
+      "Pattern": "dimension",
+      "Implementation": "bk",
+      "Version": 1
+    },
+    "Metadata": {
+      "Version": 1
+    }
+  },
+  "Dimension": {
+    "Name": "Addresses",
+    "Source": {
+      "Schema": "etl",
+      "Name": "vw_dim_$(Dimension.Name)",
+      "FullName": "[$(Dimension.Source.Schema)].[$(Dimension.Source.Name)]"
+    },
+    "Columns": {
+      "UniqueKey": [
+        {
+          "Name": "bk_AddressID",
+          "Type": "int",
+          "Default": "NULL"
+        }
+      ],
+      "SCD1": [
+        {
+          "Name": "bk_StateProvinceID",
+          "Type": "int",
+          "Default": "NULL"
+        },
+        {
+          "Name": "bk_CountryRegionCode",
+          "Type": "nvarchar(3)",
+          "Default": "NULL"
+        },
+        {
+          "Name": "StateProvince",
+          "Type": "nvarchar(50)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "CountryRegion",
+          "Type": "nvarchar(50)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "PostalCode",
+          "Type": "nvarchar(15)",
+          "Default": "'N/A'"
+        },
+        {
+          "Name": "City",
+          "Type": "nvarchar(30)",
+          "Default": "'N/A'"
+        }       
+      ],
+      "SCD2": [        
+      ]
+    }
+  }
+}

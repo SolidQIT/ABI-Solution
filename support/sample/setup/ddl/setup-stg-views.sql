@@ -3,8 +3,8 @@
 # Adaptive BI Framework 3.0
 # Sample Reference Solution
 #
-# Last Revision: 1
-# Last Date: 2016-02-25
+# Last Revision: 2
+# Last Date: 2016-06-28
 # Last Author: dmauri
 #
 # Notes:
@@ -12,27 +12,27 @@
 #
 */
 
-use [AdaptiveBI30_STG]
-go
+USE [AdaptiveBI30_STG]
+GO
 
-if (object_id('[proxy_cfg].PersonType') is not null) drop synonym [proxy_cfg].PersonType;
-go
-create synonym [proxy_cfg].PersonType for AdaptiveBI30_CFG.cfg.PersonType
+IF (OBJECT_ID('[proxy_cfg].PersonType') IS NOT NULL) DROP SYNONYM [proxy_cfg].PersonType;
+GO
+CREATE SYNONYM [proxy_cfg].PersonType FOR AdaptiveBI30_CFG.cfg.PersonType
 
-if (object_id('[proxy_cfg].StoreSize') is not null) drop synonym [proxy_cfg].StoreSize;
-go
-create synonym [proxy_cfg].StoreSize for AdaptiveBI30_CFG.cfg.StoreSize
+IF (OBJECT_ID('[proxy_cfg].StoreSize') IS NOT NULL) DROP SYNONYM [proxy_cfg].StoreSize;
+GO
+CREATE SYNONYM [proxy_cfg].StoreSize FOR AdaptiveBI30_CFG.cfg.StoreSize
 
-if (object_id('[proxy_cfg].OrderStatus') is not null) drop synonym [proxy_cfg].OrderStatus;
-go
-create synonym [proxy_cfg].OrderStatus for AdaptiveBI30_CFG.cfg.OrderStatus
-go
+IF (OBJECT_ID('[proxy_cfg].OrderStatus') IS NOT NULL) DROP SYNONYM [proxy_cfg].OrderStatus;
+GO
+CREATE SYNONYM [proxy_cfg].OrderStatus FOR AdaptiveBI30_CFG.cfg.OrderStatus
+GO
 
-if (object_id('etl.vw_dim_Products') is not null) drop view etl.vw_dim_Products;
-go
-create view etl.vw_dim_Products
-as
-select 
+IF (OBJECT_ID('etl.vw_dim_Products') IS NOT NULL) DROP VIEW etl.vw_dim_Products;
+GO
+CREATE VIEW etl.vw_dim_Products
+AS
+SELECT 
 	bk_ProductID = ProductID,
 	bk_ProductSubcategoryID = sc.ProductSubcategoryID,
 	bk_ProductCategoryID = c.ProductCategoryID,
@@ -40,171 +40,188 @@ select
 	ProductName = ISNULL(p.Name, 'N/A'),
 	SubcategoryName = ISNULL(sc.Name, 'N/A'),
 	CategoryName = ISNULL(c.Name, 'N/A')
-from 
+FROM 
 	stg.Production__Product p
-left join
-	stg.Production__ProductSubCategory sc on p.ProductSubcategoryID = sc.ProductSubcategoryID
-left join
-	stg.Production__ProductCategory c on sc.ProductCategoryID = c.ProductCategoryID
-go
+LEFT JOIN
+	stg.Production__ProductSubCategory sc ON p.ProductSubcategoryID = sc.ProductSubcategoryID
+LEFT JOIN
+	stg.Production__ProductCategory c ON sc.ProductCategoryID = c.ProductCategoryID
+GO
 
-if (object_id('etl.vw_dim_Customers') is not null) drop view etl.vw_dim_Customers;
-go
-create view etl.vw_dim_Customers
-as
-select
+IF (OBJECT_ID('etl.vw_dim_Customers') IS NOT NULL) DROP VIEW etl.vw_dim_Customers;
+GO
+CREATE VIEW etl.vw_dim_Customers
+AS
+SELECT
 	bk_CustomerID = c.CustomerID,
 	bk_PersonID = p.BusinessEntityID,
 	bk_PersonTypeID = pt.PersonTypeID,
-	bk_StoreID = s.BusinessEntityID,
+	bk_StoreID = s.BusinessEntityId,
 	bk_StoreSizeID = ss.StoreSizeID,
 	PersonFullName = ISNULL(p.FirstName + ' ' + p.LastName, 'N/A'),
 	PersonType = ISNULL(pt.PersonType, 'N/A') ,
 	StoreName = ISNULL(s.Name, 'N/A'),
 	ss.StoreSize,
 	s.SquareFeet
-from
+FROM
 	stg.Sales__Customer c
-left join
-	stg.Person__Person p on c.PersonID = p.BusinessEntityID
-left join
-	proxy_cfg.PersonType pt on p.PersonType = pt.PersonTypeID
-left join
-	stg.Sales__Store s on c.StoreID = s.BusinessEntityID
-left join
-	proxy_cfg.StoreSize ss on s.SquareFeet between ss.FromSquareFeet and ss.ToSquareFeet
-go
+LEFT JOIN
+	stg.Person__Person p ON c.PersonID = p.BusinessEntityID
+LEFT JOIN
+	proxy_cfg.PersonType pt ON p.PersonType = pt.PersonTypeID
+LEFT JOIN
+	stg.Sales__Store s ON c.StoreID = s.BusinessEntityId
+LEFT JOIN
+	proxy_cfg.StoreSize ss ON s.SquareFeet BETWEEN ss.FromSquareFeet AND ss.ToSquareFeet
+GO
 
 
-if (object_id('etl.vw_fact_Orders') is not null) drop view etl.vw_fact_Orders;
-go
+IF (OBJECT_ID('etl.vw_fact_Orders') IS NOT NULL) DROP VIEW etl.vw_fact_Orders;
+GO
 
-create view etl.vw_fact_Orders
-as
-select
+CREATE VIEW etl.vw_fact_Orders
+AS
+SELECT
 	bk_CustomerID = CustomerID,
 	bk_OrderStatusID = [Status],
-	bk_OnlineOrderFlagID = cast(OnlineOrderFlag as tinyint),
+	bk_OnlineOrderFlagID = CAST(OnlineOrderFlag AS TINYINT),
 	bk_SalesOrderID = SalesOrderID,
+	bk_ShipToAddressID = ShipToAddressID,
+	bk_BillToAddressID = BillToAddressID,
 	id_dim_Date_OrderDate = od.result,
 	NetAmount = SubTotal,
 	TaxAmount = TaxAmt,
 	FreightAmount = Freight,
 	TotalAmount = TotalDue
-from
+FROM
 	stg.Sales__SalesOrderHeader soh
-cross apply
+CROSS APPLY
 	util.fn_DateToInt(soh.OrderDate) od
-go
+GO
 
-if (object_id('etl.vw_fact_OrderDetails') is not null) drop view etl.vw_fact_OrderDetails;
-go
+IF (OBJECT_ID('etl.vw_fact_OrderDetails') IS NOT NULL) DROP VIEW etl.vw_fact_OrderDetails;
+GO
 
-create view etl.vw_fact_OrderDetails
-as
-select
+CREATE VIEW etl.vw_fact_OrderDetails
+AS
+SELECT
 	bk_CustomerID = soh.CustomerID,
 	bk_OrderStatusID = [Status],
-	bk_OnlineOrderFlagID = cast(OnlineOrderFlag as tinyint),
+	bk_OnlineOrderFlagID = CAST(OnlineOrderFlag AS TINYINT),
 	bk_ProductID = sod.ProductID,
 	bk_SalesOrderID = soh.SalesOrderID,
 	bk_SalesOrderDetailID = sod.SalesOrderDetailID,
 	id_dim_Date_OrderDate = od.result,
 	sod.OrderQty,
 	sod.LineTotal
-from
+FROM
 	stg.Sales__SalesOrderHeader soh
-inner join
-	stg.Sales__SalesOrderDetail sod on soh.SalesOrderID = sod.SalesOrderID
-cross apply
+INNER JOIN
+	stg.Sales__SalesOrderDetail sod ON soh.SalesOrderID = sod.SalesOrderID
+CROSS APPLY
 	util.fn_DateToInt(soh.OrderDate) od
-go
+GO
 
 
-if (object_id('etl.vw_factless_OrderReasons') is not null) drop view etl.vw_factless_OrderReasons;
-go
+IF (OBJECT_ID('etl.vw_factless_OrderReasons') IS NOT NULL) DROP VIEW etl.vw_factless_OrderReasons;
+GO
 
-create view etl.vw_factless_OrderReasons
-as
-select
+CREATE VIEW etl.vw_factless_OrderReasons
+AS
+SELECT
 	bk_SalesOrderID = soh.SalesOrderID,
 	bk_SalesReasonID = SalesReasonID
-from
+FROM
 	stg.Sales__SalesOrderHeader soh
-left join
-	stg.Sales__SalesOrderHeaderSalesReason sr on soh.SalesOrderID = sr.SalesOrderID
-go
+LEFT JOIN
+	stg.Sales__SalesOrderHeaderSalesReason sr ON soh.SalesOrderID = sr.SalesOrderID
+GO
 
-if (object_id('etl.vw_dim_SalesReasons') is not null) drop view etl.vw_dim_SalesReasons;
-go
+IF (OBJECT_ID('etl.vw_dim_SalesReasons') IS NOT NULL) DROP VIEW etl.vw_dim_SalesReasons;
+GO
 
-create view etl.vw_dim_SalesReasons
-as
-select
+CREATE VIEW etl.vw_dim_SalesReasons
+AS
+SELECT
 	bk_SalesReasonID = SalesReasonID,
 	Reason = Name,
 	ReasonType
-from
+FROM
 	stg.Sales__SalesReason
-go
+GO
 
-if (object_id('etl.vw_dim_Orders') is not null) drop view etl.vw_dim_Orders;
-go
+IF (OBJECT_ID('etl.vw_dim_Orders') IS NOT NULL) DROP VIEW etl.vw_dim_Orders;
+GO
 
-create view etl.vw_dim_Orders
-as
-select distinct
+CREATE VIEW etl.vw_dim_Orders
+AS
+SELECT DISTINCT
 	bk_SalesOrderID = SalesOrderID
-from
+FROM
 	stg.Sales__SalesOrderHeader
-go
+GO
 
-if (object_id('etl.vw_dim_OrdersInfo') is not null) drop view etl.vw_dim_OrdersInfo;
-go
+IF (OBJECT_ID('etl.vw_dim_OrdersInfo') IS NOT NULL) DROP VIEW etl.vw_dim_OrdersInfo;
+GO
 
-create view etl.vw_dim_OrdersInfo
-as
-select
-	bk_OnlineOrderFlagID = cast(OrderType.OnlineOrderFlagID as tinyint),
+CREATE VIEW etl.vw_dim_OrdersInfo
+AS
+SELECT
+	bk_OnlineOrderFlagID = CAST(OrderType.OnlineOrderFlagID AS TINYINT),
 	OrderType.OnlineOrderFlag,
 	bk_OrderStatusID = os.OrderStatusID,
 	os.OrderStatus
-from
-	(values (0, N'Store Order'), (1, N'Online Order')) as OrderType (OnlineOrderFlagID, OnlineOrderFlag)
-cross join
+FROM
+	(VALUES (0, N'Store Order'), (1, N'Online Order')) AS OrderType (OnlineOrderFlagID, OnlineOrderFlag)
+CROSS JOIN
 	proxy_cfg.OrderStatus os
-go
+GO
 
-if (object_id('etl.vw_dim_Dates') is not null) drop view etl.vw_dim_Dates;
-go
+IF (OBJECT_ID('etl.vw_dim_Dates') IS NOT NULL) DROP VIEW etl.vw_dim_Dates;
+GO
 
-create view etl.vw_dim_Dates
-as
-with cte as
+CREATE VIEW etl.vw_dim_Dates
+AS
+WITH cte AS
 (
-	select 
-		FromDate = cast(min(OrderDate) as date),
-		ToDate = cast(max(OrderDate) as date)
-	from
+	SELECT 
+		FromDate = CAST(MIN(OrderDate) AS DATE),
+		ToDate = CAST(MAX(OrderDate) AS DATE)
+	FROM
 		stg.Sales__SalesOrderHeader
 ), 
-cteCalendar as (
-	select
-		CalendarDate = cast(dateadd(DAY, num - 1, FromDate) as date)
-	from
-		util.Nums nums
-	cross join
+cteCalendar AS (
+	SELECT
+		CalendarDate = CAST(DATEADD(DAY, num - 1, FromDate) AS DATE)
+	FROM
+		util.nums nums
+	CROSS JOIN
 		cte
-	where
-		dateadd(DAY, num - 1, FromDate) <= ToDate
+	WHERE
+		DATEADD(DAY, num - 1, FromDate) <= ToDate
 )
-select
+SELECT
 	id_dim_Dates = d.result,
 	CalendarYear = YEAR(CalendarDate),
 	CalendarMonth = MONTH(CalendarDate),
 	CalendarDate
-from
+FROM
 	cteCalendar c
-cross apply
+CROSS APPLY
 	util.fn_DateToInt(c.CalendarDate) d
-	
+GO
+
+IF (OBJECT_ID('etl.vw_dim_Addresses') IS NOT NULL) DROP VIEW etl.vw_dim_Addresses;
+GO
+CREATE VIEW etl.vw_dim_Addresses
+AS
+SELECT
+	AddressID AS bk_AddressID,
+	StateProvinceID AS bk_StateProvinceID,
+	CountryRegionCode AS bk_CountryRegionCode,
+	StateProvince,
+	CountryRegion,
+	PostalCode,
+	City
+FROM
+	[stg].[Person__Address]
