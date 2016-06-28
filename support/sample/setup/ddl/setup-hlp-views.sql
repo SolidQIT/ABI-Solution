@@ -3,8 +3,8 @@
 # Adaptive BI Framework 3.0
 # Sample Reference Solution
 #
-# Last Revision: 2
-# Last Date: 2016-02-25
+# Last Revision: 3
+# Last Date: 2016-06-28
 # Last Author: dmauri
 #
 */
@@ -13,6 +13,7 @@ USE [AdaptiveBI30_HLP]
 GO
 
 IF (OBJECT_ID('[bi].[vw_Person__Person]') IS NOT NULL) DROP VIEW [bi].[vw_Person__Person]
+IF (OBJECT_ID('[bi].[vw_Person__Address]') IS NOT NULL) DROP VIEW [bi].[vw_Person__Address]
 IF (OBJECT_ID('[bi].[vw_Production__Product]') IS NOT NULL) DROP VIEW [bi].[vw_Production__Product]
 IF (OBJECT_ID('[bi].[vw_Production__ProductCategory]') IS NOT NULL) DROP VIEW [bi].[vw_Production__ProductCategory]
 IF (OBJECT_ID('[bi].[vw_Production__ProductSubCategory]') IS NOT NULL) DROP VIEW [bi].[vw_Production__ProductSubCategory]
@@ -22,7 +23,7 @@ IF (OBJECT_ID('[bi].[vw_Sales__Store]') IS NOT NULL) DROP VIEW [bi].[vw_Sales__S
 IF (OBJECT_ID('[bi].[vw_Sales__SalesOrderDetail]') IS NOT NULL) DROP VIEW [bi].[vw_Sales__SalesOrderDetail]
 IF (OBJECT_ID('[bi].[vw_Sales__SalesOrderHeader]') IS NOT NULL) DROP VIEW [bi].[vw_Sales__SalesOrderHeader]
 IF (OBJECT_ID('[bi].[vw_Sales__SalesReason]') IS NOT NULL) DROP VIEW [bi].[vw_Sales__SalesReason]
-if (OBJECT_ID('[bi].[vw_Sales__SalesOrderHeaderSalesReason]') IS NOT NULL) DROP VIEW [bi].[vw_Sales__SalesOrderHeaderSalesReason]
+IF (OBJECT_ID('[bi].[vw_Sales__SalesOrderHeaderSalesReason]') IS NOT NULL) DROP VIEW [bi].[vw_Sales__SalesOrderHeaderSalesReason]
 GO
 
 CREATE VIEW [bi].[vw_Sales__CreditCard]
@@ -115,6 +116,8 @@ SELECT
 	[SalesPersonID],
 	[TerritoryID],
 	[ShipMethodID],
+	[ShipToAddressID],
+	[BillToAddressID],
 	[SubTotal],
 	[TaxAmt],
 	[Freight],
@@ -156,4 +159,23 @@ SELECT
 	ReasonType
 FROM
 	AdventureWorks2012.Sales.SalesReason
+GO
+
+CREATE VIEW [bi].[vw_Person__Address]
+AS
+SELECT 
+	[AddressID],
+	a.[StateProvinceID],
+	[City],
+	[PostalCode],
+	StateProvince = sp.[Name],
+	sp.[StateProvinceCode],
+	CountryRegion = cr.[Name],
+	sp.[CountryRegionCode]
+FROM 
+	[AdventureWorks2012].[Person].[Address] a
+INNER JOIN
+	[AdventureWorks2012].[Person].[StateProvince] sp ON a.[StateProvinceID] = sp.[StateProvinceID] 
+INNER JOIN
+	[AdventureWorks2012].[Person].[CountryRegion] cr ON sp.[CountryRegionCode] = cr.[CountryRegionCode]
 GO

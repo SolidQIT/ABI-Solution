@@ -12,6 +12,7 @@
 		Type			: T-SQL
 		Author			: dmauri
 		Version			: 1
+		Revision		: 2
 	
 */
 
@@ -39,7 +40,7 @@ CREATE TABLE [dwh].[fact_{{ Fact.Name }}]
 	[{{ column }}] INT NOT NULL,
 	{% endfor -%}	
 	{% for lookup in Fact.Dimensions.Lookups -%}
-	[id_dim_{{ lookup.Dimension }}] INT NOT NULL,
+	[id_dim_{{ lookup.Name }}] INT NOT NULL,
 	{% endfor -%}
 
 	-- Measures

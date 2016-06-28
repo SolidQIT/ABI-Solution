@@ -53,6 +53,26 @@
               "DimensionColumn": "bk_SalesOrderID"
             }
           ]
+        },
+        {
+          "Name": "BillingAddresses",
+          "Dimension": "Addresses",
+          "LookupKeys": [
+            {
+              "FactColumn": "bk_BillToAddressID",
+              "DimensionColumn": "bk_AddressID"
+            }
+          ]
+        },
+        {
+          "Name": "ShippingAddresses",
+          "Dimension": "Addresses",
+          "LookupKeys": [
+            {
+              "FactColumn": "bk_ShipToAddressID",
+              "DimensionColumn": "bk_AddressID"
+            }
+          ]
         }
       ],
       "PassThrough": [ "id_dim_Date_OrderDate" ]

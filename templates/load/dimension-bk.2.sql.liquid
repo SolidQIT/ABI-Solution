@@ -12,6 +12,7 @@
 		Type			: T-SQL
 		Author			: dmauri
 		Version			: 2
+		Revision		: 2
 
 	 Description:
         Load a dimension taking care of SCD1 and SCD2 handling. Log inserted and updated rows.
@@ -215,9 +216,9 @@ FROM
 	#mr
 
 COMMIT TRAN;
-GO
 {% endif -%}
 
+GO
 {% endif -%}
 
 CREATE PROCEDURE [etl].[stp_add_dummy_dim_{{ Dimension.Name }}]
