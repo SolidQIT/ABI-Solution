@@ -79,14 +79,10 @@ The ABI Framework environment is now set up and ready to be used.
 In this example you'll use the AdventureWorks2012 database as the data source for the Data Warehouse. In the ABI framework data is exposed through views in order to create a simple abstraction layer.  To create such views you have to execute the ``setup-views-1.ps1`` from the ``support\sample\setup`` folder. You can configure your target SQL Server instance by setting the correct value in ``$targetServer``. Its value must be the same value used before while setting up the environment.
 Once the script has finished the execution, you'll find the following views in the "HLP" database:
 
+    bi.vw_Person__Address
     bi.vw_Person__Person
     bi.vw_Production__Product
-    bi.vw_Production__ProductCategory
-    bi.vw_Production__ProductSubCategory
-    bi.vw_Sales__CreditCard
-    bi.vw_Sales__Customer
-    bi.vw_Sales__SalesOrderDetail
-    bi.vw_Sales__SalesOrderHeader
+    [...]
     bi.vw_Sales__SalesOrderHeaderSalesReason
     bi.vw_Sales__SalesReason
     bi.vw_Sales__Store
@@ -136,8 +132,22 @@ If you want to compile all the metadata at once - in the sample metadata for all
 
 And voilà: all the SQL and BIML file will be created for you in a couple of seconds.
 
+You now have to execute the SQL Script to create database objects and copy-and-paste the BIML file into your Visual Studio SSIS solution in order to use the BIML plugin (BIDS Helper or BIML Express) to expand BIML into a working package.
+
 #### Transform Phase
-TDB
+The transformation phase is where custom transformation logic is written and applied, and thus, in general, cannot be automated. For this sample, a very simple transformation logic, that only uses views, is provided. To create such views you have to execute the ``setup-views-2.ps1`` from the ``support\sample\setup`` folder. You can configure your target SQL Server instance by setting the correct value in ``$targetServer``. Its value must be the same value used before while setting up the environment.
+Once the script has finished the execution, you'll find (in addition to the ones created in the previous section) the following views in the "STG" database:
+
+    etl.vw_dim_Addresses
+    etl.vw_dim_Customers
+    etl.vw_dim_Dates
+    etl.vw_dim_Orders
+    [...]
+    etl.vw_fact_Orders
+    etl.vw_fact_OrderDetails
+    etl.vw_factless_OrderReasons
+
+The views are used to expose data to the next step where data will be loaded into dimensions and fact/factless table. All transformations should be done before, using custom stored procedures, integration services packages, or anything you may want to use to transform your data into something near to dimension and fact tables. Once such transformation is done, the only transformation that remain to be performed is the creation and/or the lookup of the surrogate keys. As said before, for this example, the transformation phase is very simple and can be directly encapsulated into the aforementioned views.  
 
 #### Load Phase
 TDB
