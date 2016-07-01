@@ -52,7 +52,10 @@ and the last component you need is an additional component for Integration Servi
 
 [SSIS Multiple Hash](https://ssismhash.codeplex.com/)
 
-####Creating support ABI Framework databases
+#### The Solution
+For convenience all the needed files has been included in a Visual Studio 2015 Project. If you don't have Visual Studio 2015, you can download the free Community edition from here: [Visual Studio 2015 Community Download](https://www.visualstudio.com/products/visual-studio-community-vs). If you prefer an alternative lightweight IDE you can also use [Atom](https://atom.io/), than don't even need a solution/project file.
+
+#### Creating support ABI Framework databases
 
 In the ``support`` folder, you will find all the files needed to create the environment to run the sample. The ABI framework relies on a some standard database ecosystem. To create the basic database to allow such ecosystem to exists, you have to execute the ``setup-db.ps1`` in the ``setup`` subfolder.
 
@@ -99,7 +102,7 @@ The templates provided with the reference solution are the following ones
 - Slowly Changing Dimension Type 2
 
 #### Extract Phase
-In this first phase you will extract the data needed for loading the Data Warehouse into the Staging database. No complex transformation will happen here, since the main goal of this phase is to transfer as quickly as possible that source data into the staging area. The pattern that will be used to load such staging area will the the *Full Load*.
+In this first phase you will extract the data needed for loading the Data Warehouse into the Staging database. No complex transformation will happen here, since the main goal of this phase is to transfer as quickly as possible that source data into the staging area. The pattern that will be used to load such staging area will be the *Full Load*.
 
 The data to be loaded in the Staging area is exposed by the views mentioned before. All you have to do right now, for each view, is to
 
@@ -132,7 +135,7 @@ If you want to compile all the metadata at once - in the sample metadata for all
 
 And voilà: all the SQL and BIML file will be created for you in a couple of seconds.
 
-You now have to execute the SQL Script to create database objects and copy-and-paste the BIML file into your Visual Studio SSIS solution in order to use the BIML plugin (BIDS Helper or BIML Express) to expand BIML into a working package.
+You now have to execute the SQL Script to create database objects and copy-and-paste the BIML file into your Visual Studio SSIS solution in order to use the BIML plugin (BIDS Helper or BIML Express) to expand BIML into a working package. In order to keep the DWH solution you're building clean and tidy, it's better to create a specific SSIS Solution to hold objects created in this Phase.
 
 #### Transform Phase
 The transformation phase is where custom transformation logic is written and applied, and thus, in general, cannot be automated. For this sample, a very simple transformation logic, that only uses views, is provided. To create such views you have to execute the ``setup-views-2.ps1`` from the ``support\sample\setup`` folder. You can configure your target SQL Server instance by setting the correct value in ``$targetServer``. Its value must be the same value used before while setting up the environment.
@@ -150,4 +153,19 @@ Once the script has finished the execution, you'll find (in addition to the ones
 The views are used to expose data to the next step where data will be loaded into dimensions and fact/factless table. All transformations should be done before, using custom stored procedures, integration services packages, or anything you may want to use to transform your data into something near to dimension and fact tables. Once such transformation is done, the only transformation that remain to be performed is the creation and/or the lookup of the surrogate keys. As said before, for this example, the transformation phase is very simple and can be directly encapsulated into the aforementioned views.  
 
 #### Load Phase
-TDB
+The load phase is where the Data Warehouse is finally loaded. No business-specific transformation are done here: the dimension and the fact tables are loaded and the only one transformation that happen is the one that turns business keys into surrogate keys. Dimension are always loaded incrementally while, in this example, the fact and factless table are loaded applying a full load pattern. Here the views created in the Transform Phase will be used to load the appropriate object. For each object the provided template will:
+
+- create the SQL Server objects in the DWH
+- create the SQL Server objects used in the SSIS packages
+- create the SSIS Package
+
+You can find the metadata files that describes each dimension in the ``metadata\load\`` subfolders. Take a look at the ``dimension\Products.json`` file. Similarly to the metadata file used in the Extract phase you can find the ``ABI3`` header section where you specify which pattern you want to use and then specific metadata needed by the chosen template. Take a look at dimension and fact metadata files so that you can start to get confident with the sample metadata and also take a look at the ``templates\load\`` folder to see how such metadata is used in the various templates.
+
+To compile the metadata into SQL and BIML files, as already did for the Extract phase, you have to use the following command:
+
+    cd C:\Work\GitHub\ABI-Solution
+    SolidQ.ABI.exe compile load/*
+
+At the end of the compilation process you will find the generated artifacts in the ``output\load\`` folder. You now have to execute the SQL scripts in order to created SQL Server objects and use the .biml files to generate the SSIS Packages to load the DWH. Again, in order to keep the DWH solution you're building clean and tidy, it's better to create a specific SSIS Solution to hold objects created in this Phase.
+
+That's it you can now load your DWH. Well done!
