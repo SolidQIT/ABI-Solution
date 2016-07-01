@@ -1,23 +1,20 @@
-﻿# Staging Table Full Load
-
-WIP
+﻿# Full Load
 
 **Purpose:**
-Apply the Full Load pattern to a Fact Table. The fact table 
+Load a table from scratch
 
 **Process:**
-```flow
-st=>start: Clean Destination Table
-op10=>operation: Get Fact Table Data
-op20=>operation: Lookup Dimension Ids
-op30=>operation: Set Dummy Dimension Members
-e=>end: Store into Destination Table
+![Alt text](http://g.gravizo.com/g?
+  @startuml;
 
-st->op10->op20->op30->e
-```
+  %28*%29 --> "First Activity";
+  "First Activity" --> %28*%29;
+  
+  @enduml
+)
 
 **Description**
 Source Fact Table Data contains Business Keys, Measures and additional columns that have to be loaded into the Destination Fact Table. Business Keys must be turned into the related Surrogate Key, by looking up the Business Key value into the corresponding dimension and taking the Surrogate Key. Only the Surrogate Key will be saved in the fact table, along with the Measures and any additional column that may be needed.
 
 **Additional References**
-
+None
