@@ -32,4 +32,4 @@ Metadata is stored in JSON files for maximum flexibility and happiness of develo
 Please note this is not a step-by-step instruction document. Some experience in working with SQL Server and BI is needed. For example we give for granted that you know how to create a SSIS Package, to attach a SQL Server database or to install and use a Visual Studio plugin, and so on.
 
 ### Documentation
-Full documentation is available here: [ABI Solution Documentation](http://abi-solution.readthedocs.io/en/master/)
+Full documentation is available here: [ABI Solution Documentation](http://abi-solution.readthedocs.io/)
